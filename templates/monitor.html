@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleep Live Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        #canvas-container { width: 100%; height: 300px; border-radius: 1rem; overflow: hidden; }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-2">
+                Sleep Data Dashboard
+            </h1>
+            <p class="text-slate-400">Live IMU Telemetry</p>
+        </header>
+
+        <nav class="mb-6 flex items-center justify-center gap-3">
+            <a href="/" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-600 hover:bg-slate-700 transition-colors">ML Predictor</a>
+            <a href="/monitor" class="px-4 py-2 rounded-xl bg-blue-500 text-white font-semibold">Live Monitor</a>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-6 flex flex-col justify-center items-center">
+                    <h2 class="text-slate-400 text-sm uppercase tracking-widest mb-2">Current Status</h2>
+                    <div id="ui-status" class="text-3xl font-bold text-blue-400">Waiting...</div>
+                    <div class="mt-2 text-sm text-slate-500">Movement: <span id="ui-movement">0.00</span> g</div>
+                </div>
+
+                <div class="glass-card p-6 flex flex-col justify-center items-center">
+                    <h2 class="text-slate-400 text-sm uppercase tracking-widest mb-2">Sleep Efficiency</h2>
+                    <div class="text-4xl font-bold text-green-400"><span id="ui-efficiency">0</span>%</div>
+                </div>
+
+                <div class="glass-card p-6">
+                    <h2 class="text-slate-400 text-sm uppercase tracking-widest mb-4">Sleep Timeline</h2>
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-2 mb-2">
+                        <span class="text-slate-300">Fell Asleep At:</span>
+                        <span id="ui-first-sleep" class="font-bold">--:--:--</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-300">Awakenings:</span>
+                        <span id="ui-awakenings" class="font-bold text-red-400">0</span>
+                    </div>
+                    <div class="flex justify-between items-center mt-2">
+                        <span class="text-slate-300">Sensor Source:</span>
+                        <span id="ui-sensor-source" class="font-bold text-cyan-400">{{ sensor_source }}</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 font-mono text-sm flex flex-col justify-center">
+                    <h2 class="text-slate-400 text-xs uppercase tracking-widest mb-4 font-sans">Raw Sensor Data</h2>
+                    <div class="flex justify-between"><span class="text-red-400">X-Axis:</span> <span id="ui-x">0.00</span></div>
+                    <div class="flex justify-between my-1"><span class="text-green-400">Y-Axis:</span> <span id="ui-y">0.00</span></div>
+                    <div class="flex justify-between"><span class="text-blue-400">Z-Axis:</span> <span id="ui-z">0.00</span></div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 flex flex-col">
+                <h2 class="text-slate-400 text-sm uppercase tracking-widest mb-2 text-center">3D Sensor Orientation</h2>
+                <p class="text-slate-500 text-xs text-center mb-4">Live from Flask-SocketIO stream</p>
+                <div id="canvas-container" class="bg-slate-900 border border-slate-700"></div>
+                {% if sensor_error %}
+                <div class="mt-4 text-xs text-amber-300">
+                    Sensor warning: {{ sensor_error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        const elStatus = document.getElementById('ui-status');
+        const elMovement = document.getElementById('ui-movement');
+        const elEfficiency = document.getElementById('ui-efficiency');
+        const elFirstSleep = document.getElementById('ui-first-sleep');
+        const elAwakenings = document.getElementById('ui-awakenings');
+        const elSensorSource = document.getElementById('ui-sensor-source');
+        const elX = document.getElementById('ui-x');
+        const elY = document.getElementById('ui-y');
+        const elZ = document.getElementById('ui-z');
+
+        let targetPitch = 0;
+        let targetRoll = 0;
+
+        socket.on('sensor_update', function(data) {
+            elStatus.innerText = data.status;
+            elStatus.className = data.status === "Awake" ? "text-3xl font-bold text-yellow-400" : "text-3xl font-bold text-blue-400";
+
+            elMovement.innerText = data.movement;
+            elEfficiency.innerText = data.efficiency;
+            elFirstSleep.innerText = data.first_sleep;
+            elAwakenings.innerText = data.awakenings;
+            elSensorSource.innerText = data.sensor_source;
+
+            elX.innerText = data.x;
+            elY.innerText = data.y;
+            elZ.innerText = data.z;
+
+            targetPitch = data.pitch;
+            targetRoll = data.roll;
+        });
+
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.appendChild(renderer.domElement);
+
+        const geometry = new THREE.BoxGeometry(2, 0.2, 1.5);
+        const materials = [
+            new THREE.MeshStandardMaterial({color: 0x3b82f6}),
+            new THREE.MeshStandardMaterial({color: 0x3b82f6}),
+            new THREE.MeshStandardMaterial({color: 0x10b981}),
+            new THREE.MeshStandardMaterial({color: 0xef4444}),
+            new THREE.MeshStandardMaterial({color: 0x8b5cf6}),
+            new THREE.MeshStandardMaterial({color: 0x8b5cf6})
+        ];
+        const sensorMesh = new THREE.Mesh(geometry, materials);
+        scene.add(sensorMesh);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 5);
+        scene.add(directionalLight);
+
+        function animate() {
+            requestAnimationFrame(animate);
+            sensorMesh.rotation.x += (targetPitch - sensorMesh.rotation.x) * 0.1;
+            sensorMesh.rotation.z += (-targetRoll - sensorMesh.rotation.z) * 0.1;
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        });
+    </script>
+</body>
+</html>
