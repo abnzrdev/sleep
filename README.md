@@ -43,6 +43,23 @@ Open:
 
 The script chooses a free port automatically when `5000` is busy.
 
+## What Is A Port?
+
+- Think of IP as your house address (example: `192.168.8.151`).
+- Port is the door number on that house (example: `5000`, `5001`, `5005`).
+- A full app link is always: `http://IP:PORT/`
+
+So if your Pi IP is `192.168.8.151` and app starts on port `5005`, open:
+
+- `http://192.168.8.151:5005/`
+- `http://192.168.8.151:5005/monitor`
+
+You can also run directly without scripts; `app.py` now has built-in auto-port fallback:
+
+```bash
+python app.py --host 0.0.0.0 --port 5000 --max-port 5100
+```
+
 ## Quick Start (Windows)
 
 ```bat
@@ -65,14 +82,32 @@ HOST=0.0.0.0 PORT=5000 MAX_PORT=5100 ./run.sh
 
 Then open from another PC on the same network:
 
-- `http://<server-ip>:5000/`
-- `http://<server-ip>:5000/monitor`
+- `http://<server-ip>:<chosen-port>/`
+- `http://<server-ip>:<chosen-port>/monitor`
 
 Find server IP on Linux:
 
 ```bash
 hostname -I
 ```
+
+## Raspberry Pi One-Click Start
+
+Use one command:
+
+```bash
+cd ~/sleep
+./start.sh
+```
+
+`start.sh` automatically:
+
+- binds server to `0.0.0.0` (network-accessible)
+- starts from preferred port `5000`
+- falls back to next free port up to `5100`
+- prints exact links (Local URL, Network URL, Monitor URL)
+
+Open the exact `Network URL` printed in terminal.
 
 Windows CMD example:
 
@@ -127,6 +162,78 @@ Reference test payload result:
 - MPU6050 has no IP address; only the host device (for example Raspberry Pi) has an IP.
 - Run this server on the device connected to MPU6050.
 - Other PCs connect through the host device IP and port.
+
+## Raspberry Pi: Port Busy Fix
+
+If you see `Address already in use`, another process is listening on that port.
+
+1. Check who is using port `5000`:
+
+```bash
+sudo ss -ltnp | grep :5000
+```
+
+2. Stop that process (replace `PID`):
+
+```bash
+sudo kill PID
+```
+
+3. Or just let this app move to the next free port automatically:
+
+```bash
+HOST=0.0.0.0 PORT=5000 MAX_PORT=5100 ./run.sh
+```
+
+4. Read your Pi IP:
+
+```bash
+hostname -I
+```
+
+## Raspberry Pi: Sensor Warning Fix
+
+If you see `Sensor warning: [Errno 6] No such device or address`, this is usually hardware/I2C setup, not a Flask code bug.
+
+Run these checks on Raspberry Pi:
+
+1. Enable I2C:
+
+```bash
+sudo raspi-config
+```
+
+Then: Interface Options -> I2C -> Enable, and reboot.
+
+2. Confirm I2C device file exists:
+
+```bash
+ls /dev/i2c-*
+```
+
+3. Install I2C tools and scan bus:
+
+```bash
+sudo apt update
+sudo apt install -y i2c-tools
+sudo i2cdetect -y 1
+```
+
+Expected MPU6050 address is usually `68` (sometimes `69`).
+
+4. If sensor is found at `69`, start app with address override (no code edit needed):
+
+```bash
+MPU6050_ADDR=0x69 ./start.sh
+```
+
+5. If your board uses another I2C bus, set it when starting:
+
+```bash
+I2C_BUS=1 ./start.sh
+```
+
+The monitor page now shows selected bus/address in Sensor Source when hardware is connected.
 
 ## Conventional Commit Examples
 

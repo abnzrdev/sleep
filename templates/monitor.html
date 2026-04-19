@@ -34,6 +34,12 @@
             <a href="/monitor" class="px-4 py-2 rounded-xl bg-blue-500 text-white font-semibold">Live Monitor</a>
         </nav>
 
+        <div class="mb-6 flex flex-wrap items-center justify-center gap-3">
+            <button id="btn-start-feed" class="px-4 py-2 rounded-xl bg-emerald-500 text-white font-semibold hover:bg-emerald-400 transition-colors" disabled>Start Data</button>
+            <button id="btn-stop-feed" class="px-4 py-2 rounded-xl bg-rose-500 text-white font-semibold hover:bg-rose-400 transition-colors">Stop Data</button>
+            <span id="feed-state" class="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">Live</span>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="glass-card p-6 flex flex-col justify-center items-center">
@@ -96,26 +102,105 @@
         const elX = document.getElementById('ui-x');
         const elY = document.getElementById('ui-y');
         const elZ = document.getElementById('ui-z');
+        const btnStartFeed = document.getElementById('btn-start-feed');
+        const btnStopFeed = document.getElementById('btn-stop-feed');
+        const elFeedState = document.getElementById('feed-state');
 
         let targetPitch = 0;
         let targetRoll = 0;
+        let lastPitch = 0;
+        let lastRoll = 0;
+        const MOVEMENT_THRESHOLD_3D = 0.001; // Small threshold to prevent jitter
+        let feedPaused = false;
+
+        function setFeedPaused(paused) {
+            feedPaused = paused;
+            btnStartFeed.disabled = !paused;
+            btnStopFeed.disabled = paused;
+
+            if (paused) {
+                elFeedState.innerText = 'Stopped';
+                elFeedState.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-400/30';
+            } else {
+                elFeedState.innerText = 'Live';
+                elFeedState.className = 'px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30';
+            }
+        }
+
+        function applySensorData(data) {
+            const status = data.status ?? 'Waiting...';
+            elStatus.innerText = status;
+            if (status === 'Awake') {
+                elStatus.className = 'text-3xl font-bold text-yellow-400';
+            } else if (status === 'Stopped') {
+                elStatus.className = 'text-3xl font-bold text-rose-400';
+            } else {
+                elStatus.className = 'text-3xl font-bold text-blue-400';
+            }
+
+            elMovement.innerText = data.movement ?? '0.00';
+            elEfficiency.innerText = data.efficiency ?? '0';
+            elFirstSleep.innerText = data.first_sleep ?? '--:--:--';
+            elAwakenings.innerText = data.awakenings ?? 0;
+            elSensorSource.innerText = data.sensor_source ?? 'External sensor feed';
+
+            elX.innerText = data.x ?? '0.00';
+            elY.innerText = data.y ?? '0.00';
+            elZ.innerText = data.z ?? '0.00';
+
+            const nextPitch = Number(data.pitch ?? lastPitch);
+            const nextRoll = Number(data.roll ?? lastRoll);
+
+            if (Math.abs(nextPitch - lastPitch) > MOVEMENT_THRESHOLD_3D || Math.abs(nextRoll - lastRoll) > MOVEMENT_THRESHOLD_3D) {
+                targetPitch = nextPitch;
+                targetRoll = nextRoll;
+                lastPitch = nextPitch;
+                lastRoll = nextRoll;
+            }
+        }
+
+        async function controlFeed(action) {
+            const response = await fetch(`/sensor_control/${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+
+            if (!response.ok) {
+                throw new Error(`Control request failed with ${response.status}`);
+            }
+
+            const result = await response.json();
+            setFeedPaused(Boolean(result.paused));
+
+            if (result.snapshot) {
+                applySensorData(result.snapshot);
+            } else if (action === 'start') {
+                elStatus.innerText = 'Waiting...';
+                elStatus.className = 'text-3xl font-bold text-blue-400';
+            }
+        }
+
+        btnStopFeed.addEventListener('click', async () => {
+            try {
+                await controlFeed('stop');
+            } catch (error) {
+                console.error(error);
+            }
+        });
+
+        btnStartFeed.addEventListener('click', async () => {
+            try {
+                await controlFeed('start');
+            } catch (error) {
+                console.error(error);
+            }
+        });
 
         socket.on('sensor_update', function(data) {
-            elStatus.innerText = data.status;
-            elStatus.className = data.status === "Awake" ? "text-3xl font-bold text-yellow-400" : "text-3xl font-bold text-blue-400";
-
-            elMovement.innerText = data.movement;
-            elEfficiency.innerText = data.efficiency;
-            elFirstSleep.innerText = data.first_sleep;
-            elAwakenings.innerText = data.awakenings;
-            elSensorSource.innerText = data.sensor_source;
-
-            elX.innerText = data.x;
-            elY.innerText = data.y;
-            elZ.innerText = data.z;
-
-            targetPitch = data.pitch;
-            targetRoll = data.roll;
+            if (feedPaused) {
+                return;
+            }
+            applySensorData(data);
         });
 
         const container = document.getElementById('canvas-container');

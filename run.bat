@@ -40,10 +40,36 @@ if not exist "%PYEXE%" (
   exit /b 1
 )
 
-call "%PYEXE%" -m pip install --disable-pip-version-check --no-input -r requirements.txt
-if errorlevel 1 (
-  echo Dependency installation failed.
+if not exist "requirements.txt" (
+  echo requirements.txt not found.
   exit /b 1
+)
+
+set "REQ_HASH="
+for /f "usebackq delims=" %%H in (`powershell -NoProfile -Command "(Get-FileHash -Algorithm SHA256 -Path 'requirements.txt').Hash"`) do (
+  set "REQ_HASH=%%H"
+)
+
+set "REQ_HASH_FILE=.venv\requirements.sha256"
+set "NEED_INSTALL=1"
+
+if defined REQ_HASH if exist "%REQ_HASH_FILE%" (
+  set /p SAVED_HASH=<"%REQ_HASH_FILE%"
+  if /I "!SAVED_HASH!"=="!REQ_HASH!" set "NEED_INSTALL=0"
+)
+
+if "%NEED_INSTALL%"=="1" (
+  echo Installing dependencies from requirements.txt...
+  call "%PYEXE%" -m pip install --disable-pip-version-check --no-input -r requirements.txt
+  if errorlevel 1 (
+    echo Dependency installation failed.
+    exit /b 1
+  )
+  if defined REQ_HASH (
+    > "%REQ_HASH_FILE%" echo(!REQ_HASH!
+  )
+) else (
+  echo Dependencies are already up to date.
 )
 
 if defined PORT (
@@ -82,7 +108,7 @@ if %START_PORT% GTR %MAX_PORT_VALUE% (
 )
 
 set "AVAILABLE_PORT="
-for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "$start=[int]$env:START_PORT; $end=[int]$env:MAX_PORT_VALUE; for($p=$start; $p -le $end; $p++){ try { $listener=[System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback,$p); $listener.Start(); $listener.Stop(); Write-Output $p; exit 0 } catch {} }; exit 1"`) do (
+for /f "usebackq delims=" %%P in (`powershell -NoProfile -Command "$start=[int]$env:START_PORT; $end=[int]$env:MAX_PORT_VALUE; $hostValue=$env:HOST_VALUE; $ip=[System.Net.IPAddress]::Loopback; if($hostValue -eq '0.0.0.0'){ $ip=[System.Net.IPAddress]::Any } else { $parsed=$null; if([System.Net.IPAddress]::TryParse($hostValue, [ref]$parsed)){ $ip=$parsed } }; for($p=$start; $p -le $end; $p++){ try { $listener=[System.Net.Sockets.TcpListener]::new($ip,$p); $listener.Start(); $listener.Stop(); Write-Output $p; exit 0 } catch {} }; exit 1"`) do (
   set "AVAILABLE_PORT=%%P"
 )
 

@@ -57,18 +57,19 @@ if [ "$START_PORT" -gt "$MAX_PORT" ]; then
 fi
 
 AVAILABLE_PORT="$(
-  python - "$START_PORT" "$MAX_PORT" <<'PY'
+  python - "$HOST_VALUE" "$START_PORT" "$MAX_PORT" <<'PY'
 import socket
 import sys
 
-start = int(sys.argv[1])
-end = int(sys.argv[2])
+host = sys.argv[1]
+start = int(sys.argv[2])
+end = int(sys.argv[3])
 
 for port in range(start, end + 1):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            sock.bind(("127.0.0.1", port))
+            sock.bind((host, port))
         except OSError:
             continue
         print(port)
@@ -89,7 +90,28 @@ if [ "$OPEN_HOST" = "0.0.0.0" ]; then
 fi
 APP_URL="http://$OPEN_HOST:$AVAILABLE_PORT"
 
-echo "Starting Sleep Efficiency Predictor on $APP_URL"
+LAN_IP=""
+if [ "$HOST_VALUE" = "0.0.0.0" ]; then
+  if command -v hostname >/dev/null 2>&1; then
+    LAN_IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  fi
+elif [[ "$HOST_VALUE" != "127.0.0.1" && "$HOST_VALUE" != "localhost" ]]; then
+  LAN_IP="$HOST_VALUE"
+fi
+
+NETWORK_URL=""
+if [ -n "$LAN_IP" ]; then
+  NETWORK_URL="http://$LAN_IP:$AVAILABLE_PORT"
+fi
+
+echo "Starting Sleep Dashboard"
+echo "Local URL:   $APP_URL"
+if [ -n "$NETWORK_URL" ]; then
+  echo "Network URL: $NETWORK_URL"
+  echo "Monitor URL: $NETWORK_URL/monitor"
+else
+  echo "Monitor URL: $APP_URL/monitor"
+fi
 
 if [ "$OPEN_BROWSER" -eq 1 ]; then
   (
