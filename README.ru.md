@@ -14,6 +14,7 @@
 - `templates/monitor.html` - страница live-монитора
 - `xgboost_sleep_model.pkl` - обученная модель
 - `run.sh` - защищенный скрипт запуска (автоподбор свободного порта)
+- `run.bat` - скрипт запуска для Windows (автоподбор свободного порта)
 
 ## Требования
 
@@ -42,6 +43,20 @@ chmod +x run.sh
 
 Скрипт автоматически выберет свободный порт, если `5000` занят.
 
+## Быстрый старт (Windows)
+
+```bat
+git clone https://github.com/abnzrdev/sleep.git
+cd sleep
+run.bat
+```
+
+Опционально (без авто-открытия браузера):
+
+```bat
+run.bat --no-open
+```
+
 ## Запуск с кастомным host/port
 
 ```bash
@@ -57,6 +72,24 @@ HOST=0.0.0.0 PORT=5000 MAX_PORT=5100 ./run.sh
 
 ```bash
 hostname -I
+```
+
+Пример для Windows CMD:
+
+```bat
+set HOST=0.0.0.0
+set PORT=5000
+set MAX_PORT=5100
+run.bat
+```
+
+Пример для Windows PowerShell:
+
+```powershell
+$env:HOST = "0.0.0.0"
+$env:PORT = "5000"
+$env:MAX_PORT = "5100"
+.\run.bat
 ```
 
 ## Переменные окружения
@@ -100,4 +133,3 @@ hostname -I
 - `feat: add monitor page navigation`
 - `fix: handle missing smbus with simulation fallback`
 - `docs: update setup instructions`
-

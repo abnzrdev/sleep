@@ -14,6 +14,7 @@ If MPU6050 is not available, the monitor automatically falls back to simulation 
 - `templates/monitor.html` - live monitor page
 - `xgboost_sleep_model.pkl` - trained model
 - `run.sh` - hardened startup script (auto free-port detection)
+- `run.bat` - Windows startup script (auto free-port detection)
 
 ## Requirements
 
@@ -42,6 +43,20 @@ Open:
 
 The script chooses a free port automatically when `5000` is busy.
 
+## Quick Start (Windows)
+
+```bat
+git clone https://github.com/abnzrdev/sleep.git
+cd sleep
+run.bat
+```
+
+Optional (without auto-opening browser):
+
+```bat
+run.bat --no-open
+```
+
 ## Run with Custom Host/Port
 
 ```bash
@@ -57,6 +72,24 @@ Find server IP on Linux:
 
 ```bash
 hostname -I
+```
+
+Windows CMD example:
+
+```bat
+set HOST=0.0.0.0
+set PORT=5000
+set MAX_PORT=5100
+run.bat
+```
+
+Windows PowerShell example:
+
+```powershell
+$env:HOST = "0.0.0.0"
+$env:PORT = "5000"
+$env:MAX_PORT = "5100"
+.\run.bat
 ```
 
 ## Environment Variables
@@ -100,4 +133,3 @@ Reference test payload result:
 - `feat: add monitor page navigation`
 - `fix: handle missing smbus with simulation fallback`
 - `docs: update setup instructions`
-
