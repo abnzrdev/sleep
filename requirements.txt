@@ -4,3 +4,4 @@ joblib==1.5.3
 pandas==3.0.2
 xgboost==3.2.0
 smbus2==0.4.3
+paramiko==3.5.1

@@ -2,6 +2,7 @@ import argparse
 import logging
 import math
 import os
+import shlex
 import socket
 import threading
 import time
@@ -12,6 +13,11 @@ import joblib
 import pandas as pd
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO
+
+try:
+    import paramiko
+except ImportError:
+    paramiko = None
 
 try:
     import smbus  # type: ignore
@@ -82,6 +88,9 @@ _external_metrics = {
     "total_sleep_seconds": 0.0,
     "latest_efficiency": 0.0,
 }
+_runtime_host = os.getenv("HOST", "127.0.0.1")
+_runtime_port = int(os.getenv("PORT", "5000")) if os.getenv("PORT", "5000").isdigit() else 5000
+_remote_control_lock = threading.Lock()
 
 
 def parse_bool(value: str | bool | None, default: bool = False) -> bool:
@@ -144,6 +153,147 @@ def _reset_external_metrics() -> None:
     _external_metrics["last_ts"] = None
     _external_metrics["total_sleep_seconds"] = 0.0
     _external_metrics["latest_efficiency"] = 0.0
+
+
+def remote_sender_autocontrol_enabled() -> bool:
+    # Enabled by default for EXTERNAL_SENSOR_ONLY mode so the dashboard controls Pi sender lifecycle.
+    return parse_bool(os.getenv("RPI_AUTOCONTROL", "1"), True)
+
+
+def _resolve_sender_target() -> tuple[str, int]:
+    target_host = os.getenv("RPI_TARGET_HOST", "").strip()
+    target_port_raw = os.getenv("RPI_TARGET_PORT", "").strip()
+
+    if not target_host:
+        target_host = request.host.split(":", 1)[0] if request.host else _runtime_host
+        if target_host in {"127.0.0.1", "localhost", "0.0.0.0"}:
+            target_host = os.getenv("PUBLIC_HOST", target_host).strip() or target_host
+
+    if target_port_raw:
+        try:
+            target_port = int(target_port_raw)
+        except ValueError as exc:
+            raise RuntimeError(f"Invalid RPI_TARGET_PORT: {target_port_raw}") from exc
+    else:
+        server_port = request.environ.get("SERVER_PORT")
+        try:
+            target_port = int(server_port) if server_port else _runtime_port
+        except (TypeError, ValueError):
+            target_port = _runtime_port
+
+    if not valid_port(target_port):
+        raise RuntimeError(f"Invalid target port: {target_port}")
+
+    return target_host, target_port
+
+
+def _run_remote_command(command: str, timeout: int = 20) -> tuple[int, str, str]:
+    if paramiko is None:
+        raise RuntimeError("paramiko is not installed. Run pip install -r requirements.txt")
+
+    host = os.getenv("RPI_SSH_HOST", "192.168.8.151").strip()
+    username = os.getenv("RPI_SSH_USER", "admin").strip()
+    password = os.getenv("RPI_SSH_PASSWORD", "").strip()
+    port_raw = os.getenv("RPI_SSH_PORT", "22").strip()
+
+    if not host:
+        raise RuntimeError("RPI_SSH_HOST is required")
+    if not username:
+        raise RuntimeError("RPI_SSH_USER is required")
+    if not password:
+        raise RuntimeError("RPI_SSH_PASSWORD is required")
+
+    try:
+        port = int(port_raw)
+    except ValueError as exc:
+        raise RuntimeError(f"Invalid RPI_SSH_PORT: {port_raw}") from exc
+
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    try:
+        client.connect(
+            hostname=host,
+            port=port,
+            username=username,
+            password=password,
+            look_for_keys=False,
+            allow_agent=False,
+            timeout=10,
+        )
+        _, stdout, stderr = client.exec_command(command, timeout=timeout)
+        exit_code = stdout.channel.recv_exit_status()
+        out = stdout.read().decode("utf-8", errors="replace").strip()
+        err = stderr.read().decode("utf-8", errors="replace").strip()
+        return exit_code, out, err
+    except Exception as exc:
+        raise RuntimeError(f"SSH command failed: {exc}") from exc
+    finally:
+        client.close()
+
+
+def _remote_sender_start(target_host: str, target_port: int) -> dict:
+    sender_python = os.getenv("RPI_SEND_PYTHON", "python")
+    sender_script = os.getenv("RPI_SEND_SCRIPT", "send.py")
+    sender_workdir = os.getenv("RPI_SEND_WORKDIR", "~")
+    sender_pid_file = os.getenv("RPI_SENDER_PID_FILE", "/tmp/sleep_sender.pid")
+    sender_log_file = os.getenv("RPI_SENDER_LOG_FILE", "/tmp/sleep_sender.log")
+    extra_args = os.getenv("RPI_SEND_EXTRA_ARGS", "").strip()
+
+    sender_cmd = (
+        f"{shlex.quote(sender_python)} {shlex.quote(sender_script)} "
+        f"--host {shlex.quote(target_host)} --port {target_port}"
+    )
+    if extra_args:
+        sender_cmd = f"{sender_cmd} {extra_args}"
+
+    remote_cmd = (
+        "set -e; "
+        f"PID_FILE={shlex.quote(sender_pid_file)}; "
+        f"LOG_FILE={shlex.quote(sender_log_file)}; "
+        f"cd {shlex.quote(sender_workdir)}; "
+        "if [ -f \"$PID_FILE\" ] && kill -0 \"$(cat \"$PID_FILE\")\" 2>/dev/null; then "
+        "echo already_running; "
+        "else "
+        f"nohup {sender_cmd} >> \"$LOG_FILE\" 2>&1 & echo $! > \"$PID_FILE\"; "
+        "echo started; "
+        "fi"
+    )
+
+    exit_code, out, err = _run_remote_command(remote_cmd)
+    if exit_code != 0:
+        raise RuntimeError(f"Remote start failed: {err or out or 'unknown error'}")
+
+    state = "started" if "started" in out else "already_running"
+    return {
+        "state": state,
+        "target_host": target_host,
+        "target_port": target_port,
+        "log_file": sender_log_file,
+        "pid_file": sender_pid_file,
+    }
+
+
+def _remote_sender_stop() -> dict:
+    sender_pid_file = os.getenv("RPI_SENDER_PID_FILE", "/tmp/sleep_sender.pid")
+
+    remote_cmd = (
+        "set -e; "
+        f"PID_FILE={shlex.quote(sender_pid_file)}; "
+        "if [ -f \"$PID_FILE\" ]; then "
+        "PID=\"$(cat \"$PID_FILE\")\"; "
+        "kill \"$PID\" 2>/dev/null || true; "
+        "rm -f \"$PID_FILE\"; "
+        "echo stopped; "
+        "else "
+        "echo not_running; "
+        "fi"
+    )
+
+    exit_code, out, err = _run_remote_command(remote_cmd)
+    if exit_code != 0:
+        raise RuntimeError(f"Remote stop failed: {err or out or 'unknown error'}")
+
+    return {"state": "stopped" if "stopped" in out else "not_running"}
 
 
 def valid_port(value: int) -> bool:
@@ -540,6 +690,16 @@ def stop_sensor_feed():
         _external_feed_paused = True
         snapshot = dict(_external_last_data)
 
+    remote = None
+    remote_error = ""
+    if external_sensor_only_enabled() and remote_sender_autocontrol_enabled():
+        with _remote_control_lock:
+            try:
+                remote = _remote_sender_stop()
+            except Exception as exc:
+                remote_error = str(exc)
+                LOGGER.exception("Failed to stop remote sender")
+
     if snapshot:
         snapshot["status"] = "Stopped"
         snapshot["sensor_source"] = snapshot.get("sensor_source", "External sensor feed (stopped)")
@@ -559,19 +719,29 @@ def stop_sensor_feed():
         }
 
     socketio.emit("sensor_update", snapshot)
-    return jsonify(success=True, paused=True, snapshot=snapshot)
+    return jsonify(success=True, paused=True, snapshot=snapshot, remote=remote, remote_error=remote_error)
 
 
 @app.post("/sensor_control/start")
 def start_sensor_feed():
     global _external_feed_paused, _external_last_data
 
+    remote = None
+    if external_sensor_only_enabled() and remote_sender_autocontrol_enabled():
+        target_host, target_port = _resolve_sender_target()
+        with _remote_control_lock:
+            try:
+                remote = _remote_sender_start(target_host, target_port)
+            except Exception as exc:
+                LOGGER.exception("Failed to start remote sender")
+                return jsonify(success=False, paused=True, error=str(exc)), 502
+
     with _external_control_lock:
         _external_feed_paused = False
         _external_last_data = {}
         _reset_external_metrics()
 
-    return jsonify(success=True, paused=False)
+    return jsonify(success=True, paused=False, remote=remote)
 
 
 init_sensor_source()
@@ -583,6 +753,8 @@ if __name__ == "__main__":
     )
 
     host, port, debug = resolve_runtime_config()
+    _runtime_host = host
+    _runtime_port = port
 
     open_host = "127.0.0.1" if host == "0.0.0.0" else host
     LOGGER.info("Sleep Dashboard starting")

@@ -109,6 +109,44 @@ cd ~/sleep
 
 Открывайте точный `Network URL`, который напечатан в терминале.
 
+## Авто Запуск/Остановка Sender На Pi Из Кнопок Monitor
+
+Кнопки на странице Live Monitor теперь могут удаленно управлять процессом sender на Raspberry Pi:
+
+- `Start Data` запускает sender на Pi по SSH
+- `Stop Data` останавливает sender на Pi по SSH
+
+Формат команды по умолчанию:
+
+```bash
+python send.py --host <dashboard-host> --port <dashboard-port>
+```
+
+Задайте переменные окружения на машине, где запущен Flask dashboard:
+
+```bash
+export RPI_AUTOCONTROL=1
+export RPI_SSH_HOST=192.168.8.151
+export RPI_SSH_PORT=22
+export RPI_SSH_USER=admin
+export RPI_SSH_PASSWORD=12345678
+export RPI_SEND_WORKDIR=/home/admin
+export RPI_SEND_SCRIPT=send.py
+export RPI_SEND_PYTHON=python
+```
+
+После этого запускайте как обычно:
+
+```bash
+./run.sh
+```
+
+Примечания:
+
+- Хост и порт dashboard определяются автоматически из текущего URL в браузере.
+- При необходимости можно принудительно задать `RPI_TARGET_HOST` и `RPI_TARGET_PORT`.
+- Для безопасности лучше использовать SSH-ключи вместо пароля в переменных окружения.
+
 Пример для Windows CMD:
 
 ```bat
@@ -135,6 +173,19 @@ $env:MAX_PORT = "5100"
 - `DEBUG` - debug-режим (`0`/`1`, по умолчанию: `0`)
 - `TEST_MODE` - режим логики сна (`1` для короткого теста, `0` для реального времени)
 - `MOVEMENT_THRESHOLD` - порог движения для логики сон/пробуждение (по умолчанию: `0.05`)
+- `RPI_AUTOCONTROL` - включить SSH-управление sender из кнопок monitor (`1`/`0`, по умолчанию: `1`)
+- `RPI_SSH_HOST` - SSH host Raspberry Pi (по умолчанию: `192.168.8.151`)
+- `RPI_SSH_PORT` - SSH порт Raspberry Pi (по умолчанию: `22`)
+- `RPI_SSH_USER` - SSH пользователь Raspberry Pi (по умолчанию: `admin`)
+- `RPI_SSH_PASSWORD` - SSH пароль Raspberry Pi (обязателен для SSH-управления)
+- `RPI_SEND_WORKDIR` - удаленная папка со скриптом sender (по умолчанию: `~`)
+- `RPI_SEND_SCRIPT` - имя/путь sender-скрипта на Pi (по умолчанию: `send.py`)
+- `RPI_SEND_PYTHON` - python исполняемый файл на Pi (по умолчанию: `python`)
+- `RPI_SENDER_PID_FILE` - PID-файл на Pi для start/stop (по умолчанию: `/tmp/sleep_sender.pid`)
+- `RPI_SENDER_LOG_FILE` - лог-файл sender на Pi (по умолчанию: `/tmp/sleep_sender.log`)
+- `RPI_SEND_EXTRA_ARGS` - дополнительные аргументы к команде sender
+- `RPI_TARGET_HOST` - принудительный `--host` для sender (опционально)
+- `RPI_TARGET_PORT` - принудительный `--port` для sender (опционально)
 
 ## API (ML предиктор)
 
