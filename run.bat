@@ -3,6 +3,9 @@ setlocal EnableExtensions EnableDelayedExpansion
 
 cd /d "%~dp0"
 
+call :load_env_file ".env"
+call :load_env_file ".env.local"
+
 set "OPEN_BROWSER=1"
 :parse_args
 if "%~1"=="" goto args_done
@@ -133,6 +136,58 @@ if not defined DEBUG set "DEBUG=0"
 
 call "%PYEXE%" app.py
 exit /b %ERRORLEVEL%
+
+:load_env_file
+set "ENV_FILE=%~1"
+if not exist "%ENV_FILE%" exit /b 0
+
+for /f "usebackq tokens=* delims=" %%L in ("%ENV_FILE%") do (
+  call :process_env_line "%%L"
+)
+echo Loaded config: %ENV_FILE%
+exit /b 0
+
+:process_env_line
+set "RAW_LINE=%~1"
+if not defined RAW_LINE exit /b 0
+
+for /f "tokens=* delims= " %%A in ("%RAW_LINE%") do set "RAW_LINE=%%A"
+if not defined RAW_LINE exit /b 0
+if "!RAW_LINE:~0,1!"=="#" exit /b 0
+
+if /I "!RAW_LINE:~0,7!"=="export " set "RAW_LINE=!RAW_LINE:~7!"
+
+for /f "tokens=1,* delims==" %%K in ("!RAW_LINE!") do (
+  set "ENV_KEY=%%K"
+  set "ENV_VAL=%%L"
+)
+
+if not defined ENV_KEY exit /b 0
+if not defined ENV_VAL exit /b 0
+
+call :trim_var ENV_KEY
+call :trim_var ENV_VAL
+
+if not defined ENV_KEY exit /b 0
+
+if "!ENV_VAL:~0,1!"=="\"" if "!ENV_VAL:~-1!"=="\"" set "ENV_VAL=!ENV_VAL:~1,-1!"
+if "!ENV_VAL:~0,1!"=="'" if "!ENV_VAL:~-1!"=="'" set "ENV_VAL=!ENV_VAL:~1,-1!"
+
+set "%ENV_KEY%=%ENV_VAL%"
+exit /b 0
+
+:trim_var
+set "TRIM_TARGET=%~1"
+if not defined %TRIM_TARGET% exit /b 0
+
+for /f "tokens=* delims= " %%A in ("!%TRIM_TARGET%!") do set "%TRIM_TARGET%=%%A"
+:trim_var_right
+if not defined %TRIM_TARGET% exit /b 0
+if "!%TRIM_TARGET%:~-1!"==" " (
+  set "%TRIM_TARGET%=!%TRIM_TARGET%:~0,-1!"
+  goto trim_var_right
+)
+exit /b 0
 
 :validate_port
 set "PORT_CANDIDATE=%~1"

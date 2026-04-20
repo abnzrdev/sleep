@@ -6,6 +6,21 @@ umask 027
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+load_env_file() {
+  local env_file="$1"
+  if [ -f "$env_file" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$env_file"
+    set +a
+    echo "Loaded config: $env_file"
+  fi
+}
+
+# Auto-load local config so users can run once without typing many export commands.
+load_env_file ".env"
+load_env_file ".env.local"
+
 OPEN_BROWSER=1
 for arg in "$@"; do
   case "$arg" in

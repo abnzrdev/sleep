@@ -135,6 +135,26 @@ export RPI_SEND_SCRIPT=send.py
 export RPI_SEND_PYTHON=python
 ```
 
+Также можно задать их один раз в локальном файле `.env` (рекомендуется). И `run.sh`, и `run.bat` теперь автоматически подгружают `.env` и `.env.local`.
+
+Одноразовая настройка:
+
+```bash
+cp .env.example .env
+```
+
+Далее отредактируйте `.env` и запускайте как обычно:
+
+```bash
+./run.sh --no-open
+```
+
+Эквивалент для Windows:
+
+```bat
+run.bat --no-open
+```
+
 После этого запускайте как обычно:
 
 ```bash
