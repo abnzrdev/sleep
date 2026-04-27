@@ -5,3 +5,4 @@ pandas==3.0.2
 xgboost==3.2.0
 smbus2==0.4.3
 paramiko==3.5.1
+python-dotenv==1.0.1

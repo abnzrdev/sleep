@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sleep Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cohere: {
+                            black: '#000000',
+                            near: '#212121',
+                            deep: '#17171c',
+                            blue: '#1863dc',
+                            ring: '#4c6ee6',
+                            purple: '#9b60aa',
+                            snow: '#fafafa',
+                            light: '#f2f2f2',
+                            border: '#d9d9dd',
+                            muted: '#93939f',
+                            success: '#127a43',
+                            alert: '#b42318',
+                        },
+                    },
+                    borderRadius: {
+                        signature: '22px',
+                    },
+                    fontFamily: {
+                        display: ['CohereText', '"Space Grotesk"', 'Inter', 'ui-sans-serif', 'system-ui'],
+                        sans: ['"Unica77 Cohere Web"', 'Inter', 'Arial', 'ui-sans-serif', 'system-ui'],
+                        mono: ['CohereMono', '"IBM Plex Mono"', '"SFMono-Regular"', 'ui-monospace', 'monospace'],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        :root {
+            --cohere-black: #000000;
+            --cohere-near: #212121;
+            --cohere-deep: #17171c;
+            --cohere-blue: #1863dc;
+            --cohere-ring: rgba(76, 110, 230, 0.5);
+            --cohere-purple: #9b60aa;
+            --cohere-white: #ffffff;
+            --cohere-snow: #fafafa;
+            --cohere-light: #f2f2f2;
+            --cohere-border: #d9d9dd;
+            --cohere-muted: #93939f;
+            --cohere-success: #127a43;
+            --cohere-alert: #b42318;
+        }
+
+        body {
+            font-family: "Unica77 Cohere Web", Inter, Arial, ui-sans-serif, system-ui;
+            background:
+                radial-gradient(circle at top left, rgba(24, 99, 220, 0.08), transparent 24%),
+                radial-gradient(circle at top right, rgba(155, 96, 170, 0.12), transparent 20%),
+                var(--cohere-white);
+            color: var(--cohere-near);
+        }
+
+        .display-face {
+            font-family: CohereText, "Space Grotesk", Inter, ui-sans-serif, system-ui;
+            letter-spacing: -0.04em;
+        }
+
+        .section-label {
+            font-family: CohereMono, "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--cohere-muted);
+            font-size: 0.75rem;
+        }
+
+        .cohere-card {
+            background: var(--cohere-white);
+            border: 1px solid var(--cohere-light);
+            border-radius: 22px;
+        }
+
+        .cohere-card-strong {
+            background: var(--cohere-white);
+            border: 1px solid var(--cohere-border);
+            border-radius: 22px;
+        }
+
+        .hero-band {
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 28%),
+                linear-gradient(135deg, #2a1a46 0%, #17171c 60%, #101018 100%);
+            border-radius: 22px;
+            color: var(--cohere-white);
+        }
+
+        .nav-link {
+            border-radius: 9999px;
+            color: var(--cohere-deep);
+            padding: 0.7rem 1rem;
+            transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+        }
+
+        .nav-link:hover {
+            color: var(--cohere-blue);
+        }
+
+        .nav-link-active {
+            background: var(--cohere-deep);
+            color: var(--cohere-white);
+        }
+
+        .nav-link-active:hover {
+            color: var(--cohere-white);
+        }
+
+        .input-shell {
+            border: 1px solid var(--cohere-border);
+            border-radius: 16px;
+            background: var(--cohere-white);
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        .input-shell:focus-within {
+            border-color: var(--cohere-purple);
+            box-shadow: 0 0 0 2px var(--cohere-ring);
+        }
+
+        .metric-value {
+            font-family: CohereText, "Space Grotesk", Inter, ui-sans-serif, system-ui;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+
+        .status-pill {
+            border-radius: 9999px;
+            border: 1px solid var(--cohere-border);
+            padding: 0.45rem 0.9rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .status-live {
+            color: var(--cohere-success);
+            border-color: rgba(18, 122, 67, 0.22);
+            background: rgba(18, 122, 67, 0.08);
+        }
+
+        .status-alert {
+            color: var(--cohere-alert);
+            border-color: rgba(180, 35, 24, 0.22);
+            background: rgba(180, 35, 24, 0.08);
+        }
+
+        .ghost-button {
+            border-radius: 9999px;
+            color: var(--cohere-black);
+            transition: color 150ms ease, opacity 150ms ease, background-color 150ms ease;
+        }
+
+        .ghost-button:hover {
+            color: var(--cohere-blue);
+            opacity: 0.8;
+        }
+
+        .ghost-button:focus-visible,
+        .solid-button:focus-visible,
+        .outline-button:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--cohere-blue);
+            outline-offset: 2px;
+        }
+
+        .solid-button {
+            background: var(--cohere-deep);
+            color: var(--cohere-white);
+            border-radius: 9999px;
+        }
+
+        .solid-button:hover {
+            background: var(--cohere-blue);
+        }
+
+        .outline-button {
+            border-radius: 9999px;
+            border: 1px solid var(--cohere-border);
+            color: var(--cohere-deep);
+            background: var(--cohere-white);
+        }
+
+        .outline-button:hover {
+            color: var(--cohere-blue);
+            border-color: rgba(24, 99, 220, 0.35);
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="min-h-screen bg-white text-cohere-near antialiased">
+    <div class="min-h-screen">
+        <header class="border-b border-cohere-border/80 bg-white/90 backdrop-blur">
+            <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
+                <div>
+                    <a href="/" class="display-face text-2xl text-cohere-black">Sleep Command</a>
+                    <p class="mt-1 text-sm text-cohere-muted">Predictive sleep analytics and live sensor operations</p>
+                </div>
+                <nav class="flex flex-wrap items-center gap-2 rounded-full border border-cohere-light bg-cohere-snow p-1.5">
+                    <a href="/" class="nav-link {% if active_page == 'predictor' %}nav-link-active{% endif %}">Predictor</a>
+                    <a href="/monitor" class="nav-link {% if active_page == 'monitor' %}nav-link-active{% endif %}">Monitor</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-10">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

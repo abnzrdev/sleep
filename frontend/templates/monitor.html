@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+
+{% block title %}Sleep Dashboard | Monitor{% endblock %}
+
+{% block content %}
+<section class="hero-band p-7 lg:p-10">
+    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+            <div class="section-label text-white/70">Live Sensor Operations</div>
+            <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none tracking-[-0.05em] text-white sm:text-5xl lg:text-6xl">
+                Real-time sleep telemetry for motion state, orientation, and sensor health.
+            </h1>
+            <p class="mt-5 max-w-2xl text-base leading-7 text-white/75 lg:text-lg">
+                This enterprise-style dashboard streams Socket.IO events from the MPU6050 feed so operators can monitor motion, efficiency, awakenings, and orientation in one command surface.
+            </p>
+        </div>
+        <div class="rounded-[22px] border border-white/15 bg-white/8 p-5 lg:min-w-[18rem]">
+            <p class="section-label text-white/55">Current source</p>
+            <p class="mt-3 text-lg text-white">{{ sensor_source }}</p>
+            {% if sensor_error %}
+            <p class="mt-4 text-sm text-amber-200">Sensor warning: {{ sensor_error }}</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<section class="mt-6 flex flex-wrap items-center gap-3">
+    <button id="btn-start-feed" class="outline-button px-5 py-3 text-sm font-medium" disabled>Start Data</button>
+    <button id="btn-stop-feed" class="solid-button bg-[#8a1d16] px-5 py-3 text-sm font-medium hover:bg-[#b42318]">Stop Data</button>
+    <span id="feed-state" class="status-pill status-live">Live</span>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
+    <div class="grid gap-6">
+        <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            <div class="cohere-card-strong p-6">
+                <div class="section-label">Status</div>
+                <div id="ui-status" class="metric-value mt-4 text-4xl text-[#127a43]">Waiting...</div>
+                <p class="mt-3 text-sm text-cohere-muted">Sleep state classification from the live feed.</p>
+            </div>
+            <div class="cohere-card-strong p-6">
+                <div class="section-label">Movement</div>
+                <div class="metric-value mt-4 text-4xl text-cohere-black"><span id="ui-movement">0.00</span></div>
+                <p class="mt-3 text-sm text-cohere-muted">Instant movement delta in g-units.</p>
+            </div>
+            <div class="cohere-card-strong p-6">
+                <div class="section-label">Efficiency</div>
+                <div class="metric-value mt-4 text-4xl text-cohere-black"><span id="ui-efficiency">0</span>%</div>
+                <p class="mt-3 text-sm text-cohere-muted">Live cumulative sleep efficiency.</p>
+            </div>
+            <div class="cohere-card-strong p-6">
+                <div class="section-label">Awakenings</div>
+                <div class="metric-value mt-4 text-4xl text-cohere-black"><span id="ui-awakenings">0</span></div>
+                <p class="mt-3 text-sm text-cohere-muted">Wake transitions detected this session.</p>
+            </div>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-[1fr,0.9fr]">
+            <div class="cohere-card-strong p-6 lg:p-7">
+                <div class="flex items-start justify-between gap-4 border-b border-cohere-light pb-4">
+                    <div>
+                        <div class="section-label">Sleep Timeline</div>
+                        <h2 class="mt-3 text-3xl text-cohere-black">Session details</h2>
+                    </div>
+                    <span id="status-chip" class="status-pill">Waiting</span>
+                </div>
+                <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-[20px] border border-cohere-border bg-cohere-snow p-4">
+                        <p class="section-label">First Sleep</p>
+                        <p id="ui-first-sleep" class="mt-3 text-2xl text-cohere-deep">--:--:--</p>
+                    </div>
+                    <div class="rounded-[20px] border border-cohere-border bg-cohere-snow p-4">
+                        <p class="section-label">Sensor Source</p>
+                        <p id="ui-sensor-source" class="mt-3 text-sm leading-6 text-cohere-deep">{{ sensor_source }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cohere-card-strong p-6 lg:p-7">
+                <div class="section-label">Raw Sensor Data</div>
+                <h2 class="mt-3 text-3xl text-cohere-black">Axis telemetry</h2>
+                <div class="mt-6 space-y-3 font-mono text-sm">
+                    <div class="flex items-center justify-between rounded-[16px] border border-cohere-light bg-cohere-snow px-4 py-3">
+                        <span class="text-cohere-muted">X-Axis</span>
+                        <span id="ui-x" class="text-cohere-deep">0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between rounded-[16px] border border-cohere-light bg-cohere-snow px-4 py-3">
+                        <span class="text-cohere-muted">Y-Axis</span>
+                        <span id="ui-y" class="text-cohere-deep">0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between rounded-[16px] border border-cohere-light bg-cohere-snow px-4 py-3">
+                        <span class="text-cohere-muted">Z-Axis</span>
+                        <span id="ui-z" class="text-cohere-deep">0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cohere-card-strong p-6 lg:p-7">
+        <div class="border-b border-cohere-light pb-4">
+            <div class="section-label">3D Orientation</div>
+            <h2 class="mt-3 text-3xl text-cohere-black">Sensor posture model</h2>
+            <p class="mt-2 text-sm text-cohere-muted">Live pitch and roll are rendered below using the Socket.IO event stream.</p>
+        </div>
+        <div id="canvas-container" class="mt-6 h-[360px] overflow-hidden rounded-[22px] border border-[#2a1a46]/20 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_26%),linear-gradient(135deg,#2a1a46,#17171c)]"></div>
+        {% if sensor_error %}
+        <div class="mt-4 rounded-[16px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Sensor warning: {{ sensor_error }}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+    const socket = io();
+
+    const elStatus = document.getElementById('ui-status');
+    const elMovement = document.getElementById('ui-movement');
+    const elEfficiency = document.getElementById('ui-efficiency');
+    const elFirstSleep = document.getElementById('ui-first-sleep');
+    const elAwakenings = document.getElementById('ui-awakenings');
+    const elSensorSource = document.getElementById('ui-sensor-source');
+    const elX = document.getElementById('ui-x');
+    const elY = document.getElementById('ui-y');
+    const elZ = document.getElementById('ui-z');
+    const btnStartFeed = document.getElementById('btn-start-feed');
+    const btnStopFeed = document.getElementById('btn-stop-feed');
+    const elFeedState = document.getElementById('feed-state');
+    const elStatusChip = document.getElementById('status-chip');
+
+    let targetPitch = 0;
+    let targetRoll = 0;
+    let lastPitch = 0;
+    let lastRoll = 0;
+    const MOVEMENT_THRESHOLD_3D = 0.001;
+    let feedPaused = false;
+
+    function setFeedPaused(paused) {
+        feedPaused = paused;
+        btnStartFeed.disabled = !paused;
+        btnStopFeed.disabled = paused;
+
+        if (paused) {
+            elFeedState.innerText = 'Stopped';
+            elFeedState.className = 'status-pill status-alert';
+        } else {
+            elFeedState.innerText = 'Live';
+            elFeedState.className = 'status-pill status-live';
+        }
+    }
+
+    function applyStatusStyle(status) {
+        if (status === 'Awake') {
+            elStatus.className = 'metric-value mt-4 text-4xl text-[#b42318]';
+            elStatusChip.className = 'status-pill status-alert';
+            elStatusChip.innerText = 'Awake';
+            return;
+        }
+
+        if (status === 'Stopped') {
+            elStatus.className = 'metric-value mt-4 text-4xl text-[#7a271a]';
+            elStatusChip.className = 'status-pill status-alert';
+            elStatusChip.innerText = 'Stopped';
+            return;
+        }
+
+        if (String(status).toLowerCase().startsWith('sleeping')) {
+            elStatus.className = 'metric-value mt-4 text-4xl text-[#127a43]';
+            elStatusChip.className = 'status-pill status-live';
+            elStatusChip.innerText = 'Sleeping';
+            return;
+        }
+
+        elStatus.className = 'metric-value mt-4 text-4xl text-[#1863dc]';
+        elStatusChip.className = 'status-pill';
+        elStatusChip.innerText = status;
+    }
+
+    function applySensorData(data) {
+        const status = data.status ?? 'Waiting...';
+        elStatus.innerText = status;
+        applyStatusStyle(status);
+
+        elMovement.innerText = data.movement ?? '0.00';
+        elEfficiency.innerText = data.efficiency ?? '0';
+        elFirstSleep.innerText = data.first_sleep ?? '--:--:--';
+        elAwakenings.innerText = data.awakenings ?? 0;
+        elSensorSource.innerText = data.sensor_source ?? 'External sensor feed';
+
+        elX.innerText = data.x ?? '0.00';
+        elY.innerText = data.y ?? '0.00';
+        elZ.innerText = data.z ?? '0.00';
+
+        const nextPitch = Number(data.pitch ?? lastPitch);
+        const nextRoll = Number(data.roll ?? lastRoll);
+
+        if (Math.abs(nextPitch - lastPitch) > MOVEMENT_THRESHOLD_3D || Math.abs(nextRoll - lastRoll) > MOVEMENT_THRESHOLD_3D) {
+            targetPitch = nextPitch;
+            targetRoll = nextRoll;
+            lastPitch = nextPitch;
+            lastRoll = nextRoll;
+        }
+    }
+
+    async function controlFeed(action) {
+        const response = await fetch(`/sensor_control/${action}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!response.ok) {
+            throw new Error(`Control request failed with ${response.status}`);
+        }
+
+        const result = await response.json();
+        setFeedPaused(Boolean(result.paused));
+
+        if (result.snapshot) {
+            applySensorData(result.snapshot);
+        } else if (action === 'start') {
+            elStatus.innerText = 'Waiting...';
+            applyStatusStyle('Waiting...');
+        }
+    }
+
+    btnStopFeed.addEventListener('click', async () => {
+        try {
+            await controlFeed('stop');
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
+    btnStartFeed.addEventListener('click', async () => {
+        try {
+            await controlFeed('start');
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
+    socket.on('sensor_update', function(data) {
+        if (feedPaused) {
+            return;
+        }
+        applySensorData(data);
+    });
+
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.z = 5;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
+
+    const geometry = new THREE.BoxGeometry(2, 0.2, 1.5);
+    const materials = [
+        new THREE.MeshStandardMaterial({ color: 0x1863dc }),
+        new THREE.MeshStandardMaterial({ color: 0x1863dc }),
+        new THREE.MeshStandardMaterial({ color: 0x127a43 }),
+        new THREE.MeshStandardMaterial({ color: 0xb42318 }),
+        new THREE.MeshStandardMaterial({ color: 0x9b60aa }),
+        new THREE.MeshStandardMaterial({ color: 0x9b60aa }),
+    ];
+    const sensorMesh = new THREE.Mesh(geometry, materials);
+    scene.add(sensorMesh);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.7);
+    directionalLight.position.set(5, 10, 5);
+    scene.add(directionalLight);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        sensorMesh.rotation.x += (targetPitch - sensorMesh.rotation.x) * 0.1;
+        sensorMesh.rotation.z += (-targetRoll - sensorMesh.rotation.z) * 0.1;
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+</script>
+{% endblock %}
