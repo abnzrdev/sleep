@@ -1,7 +1,10 @@
+backend/models/*.pkl
+*.zip
+venv/
 .venv/
+.env
+.env.local
 __pycache__/
 *.pyc
 .DS_Store
 .codex
-.env
-.env.local
