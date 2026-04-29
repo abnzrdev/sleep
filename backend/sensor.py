@@ -309,8 +309,8 @@ class SensorState:
         except Exception as exc:
             self.bus = None
             self.sensor_source = f"Simulation (MPU6050 offline on bus {bus_number})"
-            self.sensor_error = str(exc)
-            LOGGER.error("Failed to initialize MPU6050 sensor - running in simulation mode. Error: %s", exc)
+            self.sensor_error = f"MPU6050 unavailable; using simulation data. {exc}"
+            LOGGER.warning("MPU6050 unavailable - running in simulation mode: %s", exc)
 
     def read_accelerometer(self) -> tuple[float, float, float]:
         if self.bus is not None:
@@ -398,8 +398,11 @@ class SensorState:
                 }
                 self.socketio.emit("sensor_update", sensor_data)
                 self.socketio.sleep(1)
-            except OSError:
-                # Hardware read error; keep server alive and retry.
+            except OSError as exc:
+                self.bus = None
+                self.sensor_source = "Simulation (MPU6050 disconnected)"
+                self.sensor_error = f"MPU6050 read failed; using simulation data. {exc}"
+                LOGGER.warning("MPU6050 read failed - switching to simulation mode: %s", exc)
                 self.socketio.sleep(1)
 
     def ensure_sensor_task_started(self) -> None:
@@ -477,8 +480,8 @@ class SensorState:
                 try:
                     remote = self._remote_sender_start(target_host, target_port)
                 except Exception as exc:
-                    LOGGER.exception("Failed to start remote sender")
-                    return {"success": False, "paused": True, "error": str(exc)}, 502
+                    LOGGER.warning("Remote sender unavailable - monitor will wait for data: %s", exc)
+                    remote = {"state": "unavailable", "error": str(exc)}
 
         with self.external_control_lock:
             self.external_feed_paused = False

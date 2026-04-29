@@ -3,7 +3,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-MODEL_PATH = Path(__file__).resolve().parent / "models" / "xgboost_sleep_model.pkl"
+MODEL_PATH = Path(__file__).resolve().parent / "ml_models" / "xgboost_sleep_model.pkl"
 model = joblib.load(MODEL_PATH)
 
 FEATURE_ORDER = [
