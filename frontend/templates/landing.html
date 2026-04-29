@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Sleep Command | Landing{% endblock %}
+
+{% block content %}
+<section class="hero-band overflow-hidden p-7 lg:p-10">
+    <div class="grid gap-8 lg:grid-cols-[1.05fr,0.95fr] lg:items-center">
+        <div>
+            <div class="section-label">Sleep Command</div>
+            <h1 class="display-face mt-4 max-w-4xl text-5xl leading-none text-white sm:text-6xl lg:text-7xl">
+                Sleep analytics for prediction and live monitoring.
+            </h1>
+            <p class="mt-6 max-w-2xl text-lg leading-8 text-white/75">
+                Estimate sleep efficiency from behavioral inputs, then monitor live sensor state from one focused dashboard.
+            </p>
+            <div class="mt-8 flex flex-wrap items-center gap-3">
+                <a href="/login" class="solid-button px-5 py-3 text-sm font-medium">Login</a>
+                <a href="/register" class="outline-button px-5 py-3 text-sm font-medium">Sign Up</a>
+            </div>
+        </div>
+        <div class="rounded-[20px] border border-white/10 bg-white/5 p-5">
+            <div class="rounded-[18px] border border-white/10 bg-[#1a1a1e]/70 p-5">
+                <div class="flex items-center justify-between border-b border-white/10 pb-4">
+                    <span class="section-label">Command View</span>
+                    <span class="status-pill status-live">Live</span>
+                </div>
+                <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
+                        <p class="section-label">Efficiency</p>
+                        <p class="metric-value mt-3 text-5xl text-white">87%</p>
+                    </div>
+                    <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
+                        <p class="section-label">State</p>
+                        <p class="mt-4 text-2xl text-white">Sleeping</p>
+                    </div>
+                </div>
+                <div class="mt-4 rounded-[20px] border border-white/10 bg-white/5 p-4">
+                    <p class="section-label">Telemetry</p>
+                    <div class="mt-4 h-20 rounded-[16px] bg-[linear-gradient(90deg,#17171c_0%,#7aa7ff_52%,#9b60aa_100%)]"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="mt-6 grid gap-6 md:grid-cols-2">
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Sleep Predictor</div>
+        <h2 class="mt-4 text-3xl text-white">Structured model intake</h2>
+        <p class="mt-4 text-sm leading-6 text-white/60">Run the sleep efficiency model from a clean form built for clinical-style inputs and fast result review.</p>
+    </article>
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Live Monitor</div>
+        <h2 class="mt-4 text-3xl text-white">Sensor operations view</h2>
+        <p class="mt-4 text-sm leading-6 text-white/60">Watch motion, posture, awakenings, and sleep state update from the live MPU6050 stream.</p>
+    </article>
+</section>
+
+<section class="mt-10">
+    <div class="section-label">How It Works</div>
+    <div class="mt-5 grid gap-5 md:grid-cols-3">
+        <div class="cohere-card p-6"><div class="text-3xl">01</div><p class="mt-4 text-sm leading-6 text-white/65">Enter sleep, lifestyle, and movement details in a guided form.</p></div>
+        <div class="cohere-card p-6"><div class="text-3xl">02</div><p class="mt-4 text-sm leading-6 text-white/65">The predictor estimates efficiency from the trained model.</p></div>
+        <div class="cohere-card p-6"><div class="text-3xl">03</div><p class="mt-4 text-sm leading-6 text-white/65">Use the monitor to watch live state, motion, and awakenings.</p></div>
+    </div>
+</section>
+
+<section class="mt-10">
+    <div class="section-label">What Users Say</div>
+    <div class="mt-5 grid gap-5 md:grid-cols-3">
+        <blockquote class="cohere-card p-6 text-sm leading-6 text-white/65">"The guided predictor makes sleep inputs easier to review before a session."</blockquote>
+        <blockquote class="cohere-card p-6 text-sm leading-6 text-white/65">"The live panel gives a quick read on motion and state without extra tools."</blockquote>
+        <blockquote class="cohere-card p-6 text-sm leading-6 text-white/65">"A focused dashboard for comparing habits with sensor feedback."</blockquote>
+    </div>
+</section>
+
+<footer class="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
+    <span>&copy; 2026 Sleep Command</span>
+    <nav class="flex gap-4">
+        <a class="hover:text-white" href="/about">About</a>
+        <a class="hover:text-white" href="/contact">Contact</a>
+        <a class="hover:text-white" href="https://github.com/abnzrdev/sleep" target="_blank" rel="noreferrer">GitHub</a>
+    </nav>
+</footer>
+{% endblock %}

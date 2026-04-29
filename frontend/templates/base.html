@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Sleep Dashboard{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -11,23 +12,21 @@
                 extend: {
                     colors: {
                         cohere: {
-                            black: '#000000',
-                            near: '#212121',
-                            deep: '#17171c',
-                            blue: '#1863dc',
-                            ring: '#4c6ee6',
+                            black: '#ffffff',
+                            near: '#eeeaf4',
+                            deep: '#f8f5ff',
+                            blue: '#7aa7ff',
+                            ring: '#7aa7ff',
                             purple: '#9b60aa',
-                            snow: '#fafafa',
-                            light: '#f2f2f2',
-                            border: '#d9d9dd',
-                            muted: '#93939f',
-                            success: '#127a43',
-                            alert: '#b42318',
+                            snow: '#242329',
+                            light: '#34313a',
+                            border: '#ffffff1a',
+                            muted: '#b9b3c4',
+                            success: '#73d99f',
+                            alert: '#ff8f85',
                         },
                     },
-                    borderRadius: {
-                        signature: '22px',
-                    },
+                    borderRadius: { signature: '20px' },
                     fontFamily: {
                         display: ['CohereText', '"Space Grotesk"', 'Inter', 'ui-sans-serif', 'system-ui'],
                         sans: ['"Unica77 Cohere Web"', 'Inter', 'Arial', 'ui-sans-serif', 'system-ui'],
@@ -39,28 +38,19 @@
     </script>
     <style>
         :root {
-            --cohere-black: #000000;
-            --cohere-near: #212121;
-            --cohere-deep: #17171c;
-            --cohere-blue: #1863dc;
-            --cohere-ring: rgba(76, 110, 230, 0.5);
-            --cohere-purple: #9b60aa;
+            --base-bg: #1a1a1e;
+            --cohere-blue: #7aa7ff;
+            --cohere-ring: rgba(122, 167, 255, 0.5);
             --cohere-white: #ffffff;
-            --cohere-snow: #fafafa;
-            --cohere-light: #f2f2f2;
-            --cohere-border: #d9d9dd;
-            --cohere-muted: #93939f;
-            --cohere-success: #127a43;
-            --cohere-alert: #b42318;
+            --cohere-muted: #b9b3c4;
+            --cohere-success: #73d99f;
+            --cohere-alert: #ff8f85;
         }
 
         body {
             font-family: "Unica77 Cohere Web", Inter, Arial, ui-sans-serif, system-ui;
-            background:
-                radial-gradient(circle at top left, rgba(24, 99, 220, 0.08), transparent 24%),
-                radial-gradient(circle at top right, rgba(155, 96, 170, 0.12), transparent 20%),
-                var(--cohere-white);
-            color: var(--cohere-near);
+            background: var(--base-bg);
+            color: #eeeaf4;
         }
 
         .display-face {
@@ -69,62 +59,53 @@
         }
 
         .section-label {
+            color: rgba(255, 255, 255, 0.6);
             font-family: CohereMono, "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--cohere-muted);
             font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
         }
 
-        .cohere-card {
-            background: var(--cohere-white);
-            border: 1px solid var(--cohere-light);
-            border-radius: 22px;
-        }
-
+        .cohere-card,
         .cohere-card-strong {
-            background: var(--cohere-white);
-            border: 1px solid var(--cohere-border);
-            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 20px;
         }
 
         .hero-band {
             background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 28%),
-                linear-gradient(135deg, #2a1a46 0%, #17171c 60%, #101018 100%);
-            border-radius: 22px;
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.14), transparent 28%),
+                radial-gradient(circle at 75% 20%, rgba(122, 167, 255, 0.16), transparent 24%),
+                linear-gradient(135deg, #332052 0%, #211833 42%, #17171c 100%);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 20px;
             color: var(--cohere-white);
         }
 
         .nav-link {
             border-radius: 9999px;
-            color: var(--cohere-deep);
+            color: rgba(255, 255, 255, 0.72);
             padding: 0.7rem 1rem;
-            transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+            transition: color 150ms ease, background-color 150ms ease;
         }
 
-        .nav-link:hover {
-            color: var(--cohere-blue);
-        }
-
+        .nav-link:hover,
         .nav-link-active {
-            background: var(--cohere-deep);
-            color: var(--cohere-white);
-        }
-
-        .nav-link-active:hover {
+            background: rgba(255, 255, 255, 0.08);
             color: var(--cohere-white);
         }
 
         .input-shell {
-            border: 1px solid var(--cohere-border);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 16px;
-            background: var(--cohere-white);
             transition: border-color 150ms ease, box-shadow 150ms ease;
         }
 
         .input-shell:focus-within {
-            border-color: var(--cohere-purple);
+            border-color: rgba(122, 167, 255, 0.55);
             box-shadow: 0 0 0 2px var(--cohere-ring);
         }
 
@@ -135,80 +116,89 @@
         }
 
         .status-pill {
+            border: 1px solid rgba(255, 255, 255, 0.10);
             border-radius: 9999px;
-            border: 1px solid var(--cohere-border);
-            padding: 0.45rem 0.9rem;
             font-size: 0.75rem;
-            letter-spacing: 0.14em;
+            letter-spacing: 0.12em;
+            padding: 0.45rem 0.9rem;
             text-transform: uppercase;
         }
 
         .status-live {
+            background: rgba(115, 217, 159, 0.10);
+            border-color: rgba(115, 217, 159, 0.24);
             color: var(--cohere-success);
-            border-color: rgba(18, 122, 67, 0.22);
-            background: rgba(18, 122, 67, 0.08);
         }
 
         .status-alert {
+            background: rgba(255, 143, 133, 0.10);
+            border-color: rgba(255, 143, 133, 0.24);
             color: var(--cohere-alert);
-            border-color: rgba(180, 35, 24, 0.22);
-            background: rgba(180, 35, 24, 0.08);
+        }
+
+        .ghost-button,
+        .outline-button,
+        .solid-button {
+            border-radius: 9999px;
+            transition: color 150ms ease, opacity 150ms ease, background-color 150ms ease, border-color 150ms ease;
         }
 
         .ghost-button {
-            border-radius: 9999px;
-            color: var(--cohere-black);
-            transition: color 150ms ease, opacity 150ms ease, background-color 150ms ease;
+            color: rgba(255, 255, 255, 0.72);
         }
 
         .ghost-button:hover {
-            color: var(--cohere-blue);
-            opacity: 0.8;
-        }
-
-        .ghost-button:focus-visible,
-        .solid-button:focus-visible,
-        .outline-button:focus-visible,
-        input:focus-visible {
-            outline: 2px solid var(--cohere-blue);
-            outline-offset: 2px;
+            color: var(--cohere-white);
         }
 
         .solid-button {
-            background: var(--cohere-deep);
-            color: var(--cohere-white);
-            border-radius: 9999px;
+            background: var(--cohere-white);
+            color: #17171c;
         }
 
         .solid-button:hover {
             background: var(--cohere-blue);
+            color: #101018;
         }
 
         .outline-button {
-            border-radius: 9999px;
-            border: 1px solid var(--cohere-border);
-            color: var(--cohere-deep);
-            background: var(--cohere-white);
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: var(--cohere-white);
         }
 
         .outline-button:hover {
-            color: var(--cohere-blue);
-            border-color: rgba(24, 99, 220, 0.35);
+            border-color: rgba(255, 255, 255, 0.42);
+        }
+
+        .fade-in {
+            animation: fadeIn 420ms ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
     {% block head_extra %}{% endblock %}
 </head>
-<body class="min-h-screen bg-white text-cohere-near antialiased">
+<body class="min-h-screen bg-[#1a1a1e] text-cohere-near antialiased">
     <div class="min-h-screen">
-        <header class="border-b border-cohere-border/80 bg-white/90 backdrop-blur">
+        <header class="border-b border-white/10 bg-[#1a1a1e]/90 backdrop-blur">
             <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
                 <div>
-                    <a href="/" class="display-face text-2xl text-cohere-black">Sleep Command</a>
-                    <p class="mt-1 text-sm text-cohere-muted">Predictive sleep analytics and live sensor operations</p>
+                    <a href="{{ '/' if current_user.is_authenticated else '/landing' }}" class="display-face text-2xl text-white">Sleep Command</a>
+                    <p class="mt-1 text-sm text-white/45">Predictive sleep analytics and live sensor operations</p>
                 </div>
-                <nav class="flex flex-wrap items-center gap-2 rounded-full border border-cohere-light bg-cohere-snow p-1.5">
+                <nav class="flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1.5">
+                    {% if current_user.is_authenticated %}
                     <a href="/" class="nav-link {% if active_page == 'predictor' %}nav-link-active{% endif %}">Predictor</a>
                     <a href="/monitor" class="nav-link {% if active_page == 'monitor' %}nav-link-active{% endif %}">Monitor</a>
+                    <a href="/logout" class="nav-link">Logout</a>
+                    {% else %}
+                    <a href="/login" class="nav-link {% if active_page == 'login' %}nav-link-active{% endif %}">Login</a>
+                    <a href="/register" class="solid-button px-4 py-2 text-sm">Sign Up</a>
+                    {% endif %}
                 </nav>
             </div>
         </header>

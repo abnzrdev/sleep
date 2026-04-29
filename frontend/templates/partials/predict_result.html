@@ -1,34 +1,63 @@
 {% if prediction_percent is defined %}
-<div class="cohere-card-strong p-6 lg:p-7">
+{% set score = prediction_percent %}
+{% if score <= 50 %}
+{% set insight = "Poor efficiency. Consider reducing screen time and caffeine before bed." %}
+{% elif score <= 75 %}
+{% set insight = "Moderate efficiency. Try keeping a consistent sleep schedule." %}
+{% elif score <= 89 %}
+{% set insight = "Good efficiency. Small improvements can push this higher." %}
+{% else %}
+{% set insight = "Excellent efficiency. Your sleep habits are well optimised." %}
+{% endif %}
+<div class="fade-in">
     <div class="section-label">Prediction Result</div>
-    <div class="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-            <p class="text-sm uppercase tracking-[0.2em] text-cohere-muted">Sleep efficiency</p>
-            <div class="metric-value mt-2 text-6xl text-cohere-black">{{ "%.2f"|format(prediction_percent) }}%</div>
-            <p class="mt-3 max-w-2xl text-sm text-cohere-muted">
-                The XGBoost model has evaluated the submitted sleep profile and returned the bounded efficiency score shown here.
-            </p>
+    <div class="mt-5">
+        <p class="text-sm uppercase tracking-[0.12em] text-white/50">Sleep efficiency</p>
+        <div class="metric-value mt-3 text-7xl text-white"><span id="score-count" data-score="{{ '%.2f'|format(score) }}">0</span>%</div>
+        <p class="mt-5 text-base leading-7 text-white/70">{{ insight }}</p>
+    </div>
+    <div class="mt-6 grid gap-3 sm:grid-cols-2">
+        <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
+            <p class="section-label">Raw Score</p>
+            <p class="mt-3 text-xl text-white">{{ raw_score }}</p>
         </div>
-        <div class="grid gap-3 sm:grid-cols-2 lg:min-w-[22rem]">
-            <div class="rounded-[20px] border border-cohere-border bg-cohere-snow p-4">
-                <p class="section-label">Raw Score</p>
-                <p class="mt-3 text-2xl text-cohere-deep">{{ raw_score }}</p>
-            </div>
-            <div class="rounded-[20px] border border-cohere-border bg-cohere-snow p-4">
-                <p class="section-label">Bounded Score</p>
-                <p class="mt-3 text-2xl text-cohere-deep">{{ bounded_score }}</p>
-            </div>
+        <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
+            <p class="section-label">Bounded Score</p>
+            <p class="mt-3 text-xl text-white">{{ bounded_score }}</p>
         </div>
     </div>
 </div>
+<script>
+    (() => {
+        const target = document.getElementById('score-count');
+        if (!target) return;
+        const finalValue = Number(target.dataset.score || 0);
+        const duration = 900;
+        const start = performance.now();
+        const tick = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            target.textContent = (finalValue * eased).toFixed(2);
+            if (progress < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    })();
+</script>
 {% elif error %}
-<div class="cohere-card-strong border-[rgba(180,35,24,0.18)] bg-[rgba(180,35,24,0.04)] p-5 text-sm text-[#7a271a]">
-    <div class="section-label text-[#b42318]">Validation Error</div>
+<div class="rounded-[20px] border border-[#ff8f85]/20 bg-[#ff8f85]/10 p-5 text-sm text-[#ffb5ae]">
+    <div class="section-label">Validation Error</div>
     <p class="mt-3">{{ error }}</p>
 </div>
 {% else %}
-<div class="cohere-card border-dashed border-cohere-border bg-cohere-snow/70 p-5 text-sm text-cohere-muted">
-    <div class="section-label">Result Panel</div>
-    <p class="mt-3">Submit the profile to view the predicted sleep efficiency and model scores.</p>
+<div id="predictor-guidance">
+    <div class="section-label">Before You Submit</div>
+    <h2 class="mt-3 text-3xl text-white">What the form is asking</h2>
+    <ul class="mt-6 space-y-4 text-sm leading-6 text-white/65">
+        <li>Profile basics help the model interpret age, encoded gender, and sleep duration together.</li>
+        <li>Sleep-stage percentages describe how your night was split between REM, deep, and light sleep.</li>
+        <li>Awakenings and caffeine capture common reasons sleep becomes fragmented.</li>
+        <li>Alcohol, smoking, and exercise add lifestyle context that can shift predicted efficiency.</li>
+        <li>The final result appears here with a plain-English habit insight.</li>
+    </ul>
 </div>
 {% endif %}

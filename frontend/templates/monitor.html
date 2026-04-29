@@ -4,30 +4,20 @@
 
 {% block content %}
 <section class="hero-band p-7 lg:p-10">
-    <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-            <div class="section-label text-white/70">Live Sensor Operations</div>
-            <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none tracking-[-0.05em] text-white sm:text-5xl lg:text-6xl">
-                Real-time sleep telemetry for motion state, orientation, and sensor health.
-            </h1>
-            <p class="mt-5 max-w-2xl text-base leading-7 text-white/75 lg:text-lg">
-                This enterprise-style dashboard streams Socket.IO events from the MPU6050 feed so operators can monitor motion, efficiency, awakenings, and orientation in one command surface.
-            </p>
-        </div>
-        <div class="rounded-[22px] border border-white/15 bg-white/8 p-5 lg:min-w-[18rem]">
-            <p class="section-label text-white/55">Current source</p>
-            <p class="mt-3 text-lg text-white">{{ sensor_source }}</p>
-            {% if sensor_error %}
-            <p class="mt-4 text-sm text-amber-200">Sensor warning: {{ sensor_error }}</p>
-            {% endif %}
-        </div>
-    </div>
+    <div class="section-label">Live Sensor Operations</div>
+    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
+        Real-time sleep telemetry for motion state, orientation, and sensor health.
+    </h1>
+    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
+        Monitor movement, efficiency, awakenings, and posture from the live sensor stream in one command surface.
+    </p>
 </section>
 
 <section class="mt-6 flex flex-wrap items-center gap-3">
     <button id="btn-start-feed" class="outline-button px-5 py-3 text-sm font-medium" disabled>Start Data</button>
     <button id="btn-stop-feed" class="solid-button bg-[#8a1d16] px-5 py-3 text-sm font-medium hover:bg-[#b42318]">Stop Data</button>
     <span id="feed-state" class="status-pill status-live">Live</span>
+    <span id="feed-warning" class="text-sm text-cohere-muted"></span>
 </section>
 
 <section class="mt-6 grid gap-6 xl:grid-cols-[1.15fr,0.85fr]">
@@ -98,17 +88,29 @@
     </div>
 
     <div class="cohere-card-strong p-6 lg:p-7">
-        <div class="border-b border-cohere-light pb-4">
+        <div id="monitor-guidance" class="transition duration-500">
+            <div class="section-label">Monitor Guidance</div>
+            <h2 class="mt-3 text-3xl text-white">What the monitor tracks</h2>
+            <ul class="mt-5 space-y-3 text-sm leading-6 text-white/65">
+                <li>Sleep state shows whether the current movement pattern looks awake or sleeping.</li>
+                <li>Movement tracks the latest acceleration change from the sensor stream.</li>
+                <li>Efficiency estimates the share of the session spent asleep.</li>
+                <li>Awakenings counts wake transitions during the session.</li>
+                <li>Orientation renders pitch and roll as a simple posture model.</li>
+            </ul>
+        </div>
+
+        <div id="monitor-live-panel" class="mt-6 border-t border-white/10 pt-5 opacity-45 transition duration-500">
             <div class="section-label">3D Orientation</div>
-            <h2 class="mt-3 text-3xl text-cohere-black">Sensor posture model</h2>
-            <p class="mt-2 text-sm text-cohere-muted">Live pitch and roll are rendered below using the Socket.IO event stream.</p>
+            <h2 class="mt-3 text-3xl text-white">Sensor posture model</h2>
+            <p class="mt-2 text-sm text-white/55">Current source: <span id="ui-source-summary">{{ sensor_source }}</span></p>
+            <div id="canvas-container" class="mt-6 h-[360px] overflow-hidden rounded-[20px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_26%),linear-gradient(135deg,#2a1a46,#17171c)]"></div>
+            {% if sensor_error %}
+            <div class="mt-4 rounded-[16px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/60">
+                Sensor warning: {{ sensor_error }}
+            </div>
+            {% endif %}
         </div>
-        <div id="canvas-container" class="mt-6 h-[360px] overflow-hidden rounded-[22px] border border-[#2a1a46]/20 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_26%),linear-gradient(135deg,#2a1a46,#17171c)]"></div>
-        {% if sensor_error %}
-        <div class="mt-4 rounded-[16px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-            Sensor warning: {{ sensor_error }}
-        </div>
-        {% endif %}
     </div>
 </section>
 {% endblock %}
@@ -132,6 +134,11 @@
     const btnStopFeed = document.getElementById('btn-stop-feed');
     const elFeedState = document.getElementById('feed-state');
     const elStatusChip = document.getElementById('status-chip');
+    const elFeedWarning = document.getElementById('feed-warning');
+    const elMonitorGuidance = document.getElementById('monitor-guidance');
+    const elMonitorLivePanel = document.getElementById('monitor-live-panel');
+    const elSourceSummary = document.getElementById('ui-source-summary');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
     let targetPitch = 0;
     let targetRoll = 0;
@@ -182,6 +189,8 @@
     }
 
     function applySensorData(data) {
+        elMonitorGuidance.classList.add('opacity-0', 'max-h-0', 'overflow-hidden');
+        elMonitorLivePanel.classList.remove('opacity-45');
         const status = data.status ?? 'Waiting...';
         elStatus.innerText = status;
         applyStatusStyle(status);
@@ -191,6 +200,7 @@
         elFirstSleep.innerText = data.first_sleep ?? '--:--:--';
         elAwakenings.innerText = data.awakenings ?? 0;
         elSensorSource.innerText = data.sensor_source ?? 'External sensor feed';
+        elSourceSummary.innerText = data.sensor_source ?? 'External sensor feed';
 
         elX.innerText = data.x ?? '0.00';
         elY.innerText = data.y ?? '0.00';
@@ -210,7 +220,7 @@
     async function controlFeed(action) {
         const response = await fetch(`/sensor_control/${action}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
         });
 
         if (!response.ok) {
@@ -219,6 +229,7 @@
 
         const result = await response.json();
         setFeedPaused(Boolean(result.paused));
+        elFeedWarning.innerText = result.remote?.error ? 'Sensor sender unavailable; waiting for data.' : '';
 
         if (result.snapshot) {
             applySensorData(result.snapshot);

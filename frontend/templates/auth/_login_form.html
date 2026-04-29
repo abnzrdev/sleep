@@ -1,0 +1,30 @@
+<div id="auth-form-card" class="w-full max-w-xl px-6 py-10 sm:px-10 lg:px-14">
+    <div class="section-label">Login</div>
+    <h2 class="display-face mt-4 text-4xl leading-none text-white sm:text-5xl">Access your dashboard</h2>
+    <form method="post" action="/login" hx-post="/login" hx-target="#auth-form-card" hx-swap="outerHTML" class="mt-8 space-y-5">
+        {{ form.hidden_tag() }}
+        <label class="block">
+            <span class="section-label">Email</span>
+            {{ form.email(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="email") }}
+            {% if form.email.errors %}
+            <p class="mt-2 text-sm text-[#ff8f85]">{{ form.email.errors[0] }}</p>
+            {% endif %}
+        </label>
+        <label class="block">
+            <span class="section-label">Password</span>
+            {{ form.password(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="current-password") }}
+            {% if form.password.errors %}
+            <p class="mt-2 text-sm text-[#ff8f85]">{{ form.password.errors[0] }}</p>
+            {% endif %}
+        </label>
+        {% if error %}
+        <p class="rounded-[16px] border border-[#ff8f85]/20 bg-[#ff8f85]/10 px-4 py-3 text-sm text-[#ffb5ae]">{{ error }}</p>
+        {% endif %}
+        <button type="submit" class="w-full rounded-full bg-white px-5 py-3 text-sm font-medium text-[#17171c] transition hover:bg-primary">
+            Login
+        </button>
+        <p class="text-center text-sm text-white/50">
+            Don't have an account? <a href="/register" class="text-white hover:text-primary">Sign up</a>
+        </p>
+    </form>
+</div>
