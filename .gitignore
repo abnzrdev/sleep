@@ -1,4 +1,6 @@
-backend/models/*.pkl
+backend/ml_models/*.pkl
+!backend/ml_models/xgboost_sleep_model.pkl
+instance/
 *.zip
 venv/
 .venv/
