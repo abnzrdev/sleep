@@ -20,9 +20,26 @@ Sleep Command is a Flask web app for sleep efficiency prediction and live sleep 
 - `/login` -> `frontend/templates/auth/login.html` -> full-screen login flow.
 - `/register` -> `frontend/templates/auth/register.html` -> full-screen account creation flow.
 - `/` -> `frontend/templates/index.html` -> protected multi-step sleep prediction form and result panel.
+- `/chat` -> `frontend/templates/chat.html` -> protected DB-backed AI chat sessions.
 - `/monitor` -> `frontend/templates/monitor.html` -> protected live sensor monitor.
 - `/about` -> `frontend/templates/coming_soon.html` -> placeholder page.
 - `/contact` -> `frontend/templates/coming_soon.html` -> placeholder page.
+
+## AI + Chat Summary
+
+- Chat persistence uses `ChatSession` and `ChatMessage` tables in `backend/models.py`.
+- `ChatSession` belongs to a `User` and owns many `ChatMessage` records.
+- `ChatMessage` stores `role` (`user` or `assistant`), `content`, and UTC `created_at`.
+- Chat routes include `/api/chat`, `/api/chat/sessions`, `/api/chat/sessions/new`, `/api/chat/sessions/<id>/rename`, and `/api/chat/sessions/<id>` for delete.
+- Daily tips use `/api/tip` and `/api/tip/dismiss`.
+- Suggested question logic lives in `frontend/templates/chat.html`, keyed by last prediction score range.
+- Daily tip state is stored in Flask session per user and resets at midnight.
+
+## Seed Data
+
+- Seed script: `scripts/seed.py`.
+- Run with: `.venv/bin/python scripts/seed.py` or `python scripts/seed.py`.
+- Creates test login `alex@test.com` / `test1234`, prediction history, and sample chat sessions.
 
 ## Design Rules Summary
 
@@ -36,6 +53,7 @@ Sleep Command is a Flask web app for sleep efficiency prediction and live sleep 
 
 - `/login` and `/register` are public.
 - `/`, `/monitor`, `/predict`, and sensor controls require Flask-Login authentication.
+- `/chat`, `/api/chat`, `/api/chat/sessions`, and `/api/tip` require Flask-Login authentication.
 - Successful login and registration redirect to `/`.
 - Logout redirects to `/landing`.
 - Passwords are hashed with Werkzeug security helpers.

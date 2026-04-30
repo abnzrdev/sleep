@@ -22,15 +22,41 @@ load_env_file() {
 load_env_file ".env"
 load_env_file ".env.local"
 
+print_help() {
+  cat <<'EOF'
+🛌 Sleep Command
+
+Run commands:
+  ./run.sh              🚀 Start app and open browser
+  ./run.sh --no-open    🖥️  Start app without opening browser
+  ./start.sh            📡 Start for LAN/Pi use on 0.0.0.0
+  ./run.sh --help       ❔ Show this help
+
+Useful pages:
+  /          🧠 Sleep predictor
+  /chat      💬 AI sleep advisor
+  /monitor   📟 Live sensor monitor
+
+Wi-Fi demo:
+  Set HOST=0.0.0.0 and DEBUG=0 in .env.
+  Start with ./run.sh --no-open.
+  Share the printed Network URL with friends on the same Wi-Fi.
+EOF
+}
+
 OPEN_BROWSER=1
 for arg in "$@"; do
   case "$arg" in
     --no-open)
       OPEN_BROWSER=0
       ;;
+    --help|-h)
+      print_help
+      exit 0
+      ;;
     *)
       echo "Unknown option: $arg"
-      echo "Usage: ./run.sh [--no-open]"
+      echo "Usage: ./run.sh [--no-open] [--help]"
       exit 1
       ;;
   esac
