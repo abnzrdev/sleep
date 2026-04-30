@@ -179,6 +179,23 @@
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .sleep-chat-dot {
+            animation: sleepChatPulse 1s ease-in-out infinite;
+        }
+
+        .sleep-chat-dot:nth-child(2) {
+            animation-delay: 140ms;
+        }
+
+        .sleep-chat-dot:nth-child(3) {
+            animation-delay: 280ms;
+        }
+
+        @keyframes sleepChatPulse {
+            0%, 80%, 100% { opacity: 0.35; transform: translateY(0); }
+            40% { opacity: 1; transform: translateY(-3px); }
+        }
     </style>
     {% block head_extra %}{% endblock %}
 </head>
@@ -194,6 +211,7 @@
                     {% if current_user.is_authenticated %}
                     <a href="/" class="nav-link {% if active_page == 'predictor' %}nav-link-active{% endif %}">Predictor</a>
                     <a href="/monitor" class="nav-link {% if active_page == 'monitor' %}nav-link-active{% endif %}">Monitor</a>
+                    <a href="/chat" class="nav-link {% if active_page == 'chat' %}nav-link-active{% endif %}">Chat</a>
                     <a href="/logout" class="nav-link">Logout</a>
                     {% else %}
                     <a href="/login" class="nav-link {% if active_page == 'login' %}nav-link-active{% endif %}">Login</a>
@@ -207,6 +225,194 @@
             {% block content %}{% endblock %}
         </main>
     </div>
+    {% if current_user.is_authenticated %}
+    <div id="floating-chat-shell" class="fixed bottom-5 right-5 z-50">
+        <section id="floating-chat-panel" class="cohere-card-strong mb-4 hidden w-[350px] max-w-[calc(100vw-2.5rem)] overflow-hidden shadow-2xl shadow-black/30" data-chat-root>
+            <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <div>
+                    <div class="section-label">Sleep Advisor</div>
+                    <p class="mt-1 text-sm text-white/70">Ask about your sleep context.</p>
+                </div>
+                <a href="/chat" class="ghost-button text-xs text-white/60 hover:text-white">Full page</a>
+            </div>
+            <div class="sleep-chat-messages h-[300px] space-y-3 overflow-y-auto px-4 py-4 text-sm">
+                <div class="sleep-chat-empty rounded-[16px] border border-white/10 bg-white/5 px-4 py-3 text-white/55">
+                    No chat messages yet.
+                </div>
+            </div>
+            <div class="sleep-chat-typing hidden px-4 pb-2">
+                <div class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-2">
+                    <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
+                    <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
+                    <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
+                </div>
+            </div>
+            <form class="sleep-chat-form flex gap-2 border-t border-white/10 p-3">
+                <input class="sleep-chat-input min-w-0 flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#7aa7ff]" type="text" name="message" placeholder="Ask about sleep..." autocomplete="off" required>
+                <button class="solid-button px-4 py-2 text-sm" type="submit">Send</button>
+            </form>
+        </section>
+        <button id="floating-chat-button" class="solid-button flex h-14 w-14 items-center justify-center rounded-full text-xl shadow-2xl shadow-black/30" type="button" aria-label="Open sleep chat">
+            <span aria-hidden="true">AI</span>
+        </button>
+    </div>
+    <script>
+        (() => {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+            function createBubble(role, text = '') {
+                const wrapper = document.createElement('div');
+                wrapper.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+                const bubble = document.createElement('div');
+                bubble.className = role === 'user'
+                    ? 'max-w-[82%] rounded-[18px] rounded-br-md bg-white px-4 py-3 text-sm text-[#17171c]'
+                    : 'max-w-[82%] rounded-[18px] rounded-bl-md border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white/75';
+                bubble.textContent = text;
+
+                wrapper.appendChild(bubble);
+                return { wrapper, bubble };
+            }
+
+            function scrollToBottom(messages) {
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            async function ensureSessionId(root) {
+                if (root.dataset.sessionId) {
+                    return root.dataset.sessionId;
+                }
+
+                const response = await fetch('/api/chat/sessions/new', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                });
+                if (!response.ok) {
+                    throw new Error(`Session request failed with ${response.status}`);
+                }
+                const payload = await response.json();
+                root.dataset.sessionId = String(payload.id);
+                return root.dataset.sessionId;
+            }
+
+            async function streamMessage(root, message) {
+                const messages = root.querySelector('.sleep-chat-messages');
+                const empty = root.querySelector('.sleep-chat-empty');
+                const typing = root.querySelector('.sleep-chat-typing');
+                const input = root.querySelector('.sleep-chat-input');
+
+                empty?.classList.add('hidden');
+                messages.appendChild(createBubble('user', message).wrapper);
+                input.value = '';
+                typing?.classList.remove('hidden');
+                root.dispatchEvent(new CustomEvent('sleep-chat:sent'));
+                scrollToBottom(messages);
+
+                let assistantBubble = null;
+                let receivedToken = false;
+
+                try {
+                    const sessionId = await ensureSessionId(root);
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken,
+                        },
+                        body: JSON.stringify({ message, session_id: sessionId }),
+                    });
+
+                    if (!response.ok || !response.body) {
+                        throw new Error(`Chat request failed with ${response.status}`);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+
+                    while (true) {
+                        const { value, done } = await reader.read();
+                        if (done) {
+                            break;
+                        }
+
+                        const token = decoder.decode(value, { stream: true });
+                        if (!receivedToken) {
+                            typing?.classList.add('hidden');
+                            const assistant = createBubble('assistant');
+                            assistantBubble = assistant.bubble;
+                            messages.appendChild(assistant.wrapper);
+                            receivedToken = true;
+                        }
+                        assistantBubble.textContent += token;
+                        scrollToBottom(messages);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    typing?.classList.add('hidden');
+                    messages.appendChild(createBubble('assistant', 'AI assistant is unavailable right now.').wrapper);
+                } finally {
+                    typing?.classList.add('hidden');
+                    root.dispatchEvent(new CustomEvent('sleep-chat:completed'));
+                    scrollToBottom(messages);
+                    input.focus();
+                }
+            }
+
+            function mountChat(root) {
+                const form = root.querySelector('.sleep-chat-form');
+                const input = root.querySelector('.sleep-chat-input');
+                const messages = root.querySelector('.sleep-chat-messages');
+                if (!form || !input || !messages || form.dataset.mounted === 'true') {
+                    return;
+                }
+
+                form.dataset.mounted = 'true';
+                form.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const message = input.value.trim();
+                    if (!message) {
+                        return;
+                    }
+                    streamMessage(root, message);
+                });
+                scrollToBottom(messages);
+            }
+
+            window.SleepChat = { mount: mountChat };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('[data-chat-root]').forEach(mountChat);
+
+                const button = document.getElementById('floating-chat-button');
+                const panel = document.getElementById('floating-chat-panel');
+                if (!button || !panel) {
+                    return;
+                }
+
+                function closePanel() {
+                    panel.classList.add('hidden');
+                }
+
+                button.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    panel.classList.toggle('hidden');
+                    if (!panel.classList.contains('hidden')) {
+                        panel.querySelector('.sleep-chat-input')?.focus();
+                    }
+                });
+
+                panel.addEventListener('click', (event) => event.stopPropagation());
+
+                document.addEventListener('click', () => closePanel());
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape') {
+                        closePanel();
+                    }
+                });
+            });
+        })();
+    </script>
+    {% endif %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

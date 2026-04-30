@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Sleep Dashboard | Chat{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<section class="hero-band p-7 lg:p-10">
+    <div class="section-label">Sleep Advisor</div>
+    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
+        Talk through your sleep score, habits, and next steps.
+    </h1>
+    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
+        The assistant uses your latest Sleep Command context while still answering general sleep questions.
+    </p>
+</section>
+
+<section class="mt-6 grid gap-6 lg:grid-cols-[30fr,70fr]">
+    <aside class="cohere-card-strong flex min-h-[620px] flex-col p-5 lg:p-6">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <div class="section-label">Conversations</div>
+                <h2 class="mt-2 text-2xl text-white">Sleep chats</h2>
+            </div>
+            <button id="new-chat-button" class="solid-button px-4 py-2 text-sm" type="button">New Chat</button>
+        </div>
+
+        <div id="chat-session-list" class="mt-5 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+            {% for chat_session in chat_sessions %}
+            <div class="chat-session-row group relative rounded-[16px] border px-3 py-3 transition {% if chat_session.id == active_session.id %}border-white/25 bg-white/10{% else %}border-white/10 bg-white/5 hover:bg-white/10{% endif %}" data-session-id="{{ chat_session.id }}" data-session-name="{{ chat_session.name }}">
+                <a href="/chat?session_id={{ chat_session.id }}" class="block pr-8">
+                    <span class="block truncate text-sm text-white">{{ chat_session.name }}</span>
+                    <span class="mt-1 block text-xs text-white/45">{{ chat_session.relative_time }}</span>
+                </a>
+                <button class="chat-session-menu absolute right-2 top-3 rounded-full px-2 text-lg leading-none text-white/55 hover:text-white" type="button" aria-label="Open session menu">...</button>
+                <div class="chat-session-menu-panel absolute right-2 top-10 z-20 hidden w-32 rounded-[12px] border border-white/10 bg-[#242329] p-1 shadow-xl shadow-black/30">
+                    <button class="chat-session-rename block w-full rounded-[10px] px-3 py-2 text-left text-sm text-white/75 hover:bg-white/10" type="button">Rename</button>
+                    <button class="chat-session-delete block w-full rounded-[10px] px-3 py-2 text-left text-sm text-[#ff8f85] hover:bg-white/10" type="button">Delete</button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-5 border-t border-white/10 pt-5">
+            <div class="section-label">Score Trend</div>
+            {% if chart_points|length >= 2 %}
+            <div class="mt-4 h-44">
+                <canvas id="score-trend-chart" aria-label="Last 7 prediction scores"></canvas>
+            </div>
+            {% else %}
+            <p class="mt-4 text-sm leading-6 text-white/50">Run at least two predictions to see a trend.</p>
+            {% endif %}
+        </div>
+    </aside>
+
+    <section class="cohere-card-strong flex min-h-[620px] flex-col overflow-hidden" data-chat-root data-session-id="{{ active_session.id }}">
+        <div class="border-b border-white/10 px-6 py-5 lg:px-7">
+            <div class="section-label">Conversation</div>
+            <h2 class="mt-3 text-3xl text-white">{{ active_session.name }}</h2>
+        </div>
+
+        <div class="sleep-chat-messages min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-6 lg:px-7">
+            <div class="sleep-chat-empty {% if chat_messages %}hidden{% endif %} rounded-[20px] border border-white/10 bg-white/5 px-5 py-5 text-sm leading-6 text-white/55">
+                Ask about your latest prediction, sleep habits, or general sleep questions.
+            </div>
+            {% for message in chat_messages %}
+            <div class="flex {% if message.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
+                <div class="{% if message.role == 'user' %}max-w-[82%] rounded-[18px] rounded-br-md bg-white px-4 py-3 text-sm text-[#17171c]{% else %}max-w-[82%] rounded-[18px] rounded-bl-md border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white/75{% endif %}">
+                    {{ message.content }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="sleep-chat-typing hidden px-6 pb-3 lg:px-7">
+            <div class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-2">
+                <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
+                <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
+                <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
+            </div>
+        </div>
+
+        <form class="sleep-chat-form sticky bottom-0 border-t border-white/10 bg-[#1a1a1e]/95 p-4 backdrop-blur lg:p-5">
+            <div id="suggested-questions" class="{% if chat_messages %}hidden{% endif %} mb-3 flex flex-wrap gap-2">
+                {% for question in suggested_questions %}
+                <button class="suggested-question rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 hover:border-white/30 hover:text-white" type="button">{{ question }}</button>
+                {% endfor %}
+            </div>
+            <div class="flex gap-3">
+                <input class="sleep-chat-input min-w-0 flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#7aa7ff]" type="text" name="message" placeholder="Ask Sleep Command..." autocomplete="off" required>
+                <button class="solid-button px-5 py-3 text-sm font-medium" type="submit">Send</button>
+            </div>
+        </form>
+    </section>
+</section>
+
+<div id="rename-popup" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/55 px-4">
+    <form class="cohere-card-strong w-full max-w-sm p-5" id="rename-form">
+        <div class="section-label">Rename Chat</div>
+        <input id="rename-input" class="mt-4 w-full rounded-[16px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-[#7aa7ff]" maxlength="80" required>
+        <div class="mt-4 flex justify-end gap-2">
+            <button class="outline-button px-4 py-2 text-sm" type="button" data-popup-close>Cancel</button>
+            <button class="solid-button px-4 py-2 text-sm" type="submit">Save</button>
+        </div>
+    </form>
+</div>
+
+<div id="delete-popup" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/55 px-4">
+    <div class="cohere-card-strong w-full max-w-sm p-5">
+        <div class="section-label">Delete Chat</div>
+        <p class="mt-3 text-sm leading-6 text-white/70">Delete this chat and all messages?</p>
+        <div class="mt-4 flex justify-end gap-2">
+            <button class="outline-button px-4 py-2 text-sm" type="button" data-popup-close>Cancel</button>
+            <button id="delete-confirm" class="rounded-full bg-[#ff8f85] px-4 py-2 text-sm text-[#17171c]" type="button">Delete</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    (() => {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const chatRoot = document.querySelector('[data-chat-root]');
+        const suggestedQuestions = document.getElementById('suggested-questions');
+        const sessionList = document.getElementById('chat-session-list');
+        const renamePopup = document.getElementById('rename-popup');
+        const deletePopup = document.getElementById('delete-popup');
+        const renameForm = document.getElementById('rename-form');
+        const renameInput = document.getElementById('rename-input');
+        const deleteConfirm = document.getElementById('delete-confirm');
+        let selectedSessionId = null;
+
+        document.getElementById('new-chat-button')?.addEventListener('click', async () => {
+            const response = await fetch('/api/chat/sessions/new', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            });
+            const payload = await response.json();
+            window.location.href = `/chat?session_id=${payload.id}`;
+        });
+
+        sessionList?.addEventListener('click', (event) => {
+            const menuButton = event.target.closest('.chat-session-menu');
+            const renameButton = event.target.closest('.chat-session-rename');
+            const deleteButton = event.target.closest('.chat-session-delete');
+            const row = event.target.closest('.chat-session-row');
+
+            if (menuButton && row) {
+                event.preventDefault();
+                document.querySelectorAll('.chat-session-menu-panel').forEach((panel) => panel.classList.add('hidden'));
+                row.querySelector('.chat-session-menu-panel')?.classList.toggle('hidden');
+                return;
+            }
+
+            if (renameButton && row) {
+                event.preventDefault();
+                selectedSessionId = row.dataset.sessionId;
+                renameInput.value = row.dataset.sessionName || '';
+                renamePopup.classList.remove('hidden');
+                renamePopup.classList.add('flex');
+                renameInput.focus();
+                return;
+            }
+
+            if (deleteButton && row) {
+                event.preventDefault();
+                selectedSessionId = row.dataset.sessionId;
+                deletePopup.classList.remove('hidden');
+                deletePopup.classList.add('flex');
+            }
+        });
+
+        document.querySelectorAll('[data-popup-close]').forEach((button) => {
+            button.addEventListener('click', () => {
+                renamePopup.classList.add('hidden');
+                renamePopup.classList.remove('flex');
+                deletePopup.classList.add('hidden');
+                deletePopup.classList.remove('flex');
+            });
+        });
+
+        renameForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!selectedSessionId) {
+                return;
+            }
+            await fetch(`/api/chat/sessions/${selectedSessionId}/rename`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({ name: renameInput.value.trim() }),
+            });
+            window.location.reload();
+        });
+
+        deleteConfirm?.addEventListener('click', async () => {
+            if (!selectedSessionId) {
+                return;
+            }
+            await fetch(`/api/chat/sessions/${selectedSessionId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            });
+            window.location.href = '/chat';
+        });
+
+        document.querySelectorAll('.suggested-question').forEach((button) => {
+            button.addEventListener('click', () => {
+                const input = chatRoot?.querySelector('.sleep-chat-input');
+                if (!input) {
+                    return;
+                }
+                input.value = button.textContent.trim();
+                chatRoot.querySelector('.sleep-chat-form')?.requestSubmit();
+            });
+        });
+
+        chatRoot?.addEventListener('sleep-chat:sent', () => {
+            suggestedQuestions?.classList.add('hidden');
+        });
+
+        const chartElement = document.getElementById('score-trend-chart');
+        const chartPoints = {{ chart_points|tojson }};
+        if (chartElement && chartPoints.length >= 2) {
+            new Chart(chartElement, {
+                type: 'line',
+                data: {
+                    labels: chartPoints.map((point) => point.date),
+                    datasets: [{
+                        data: chartPoints.map((point) => point.score),
+                        borderColor: '#7aa7ff',
+                        backgroundColor: 'rgba(122, 167, 255, 0.16)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#73d99f',
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: 'rgba(255,255,255,0.48)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: { color: 'rgba(255,255,255,0.48)' },
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                        },
+                    },
+                },
+            });
+        }
+    })();
+</script>
+{% endblock %}
