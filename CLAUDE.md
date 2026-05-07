@@ -1,8 +1,8 @@
-# Sleep Command
+# LunaSleep AI
 
 ## Purpose
 
-Sleep Command is a Flask web app for sleep efficiency prediction and live sleep sensor monitoring. It combines a trained XGBoost predictor with a Socket.IO monitor for MPU6050-style telemetry.
+LunaSleep AI is a Flask web app for sleep efficiency prediction, AI-assisted sleep coaching, and live sleep sensor monitoring. It combines a trained XGBoost predictor with persistent AI chat and a Socket.IO monitor for MPU6050-style telemetry.
 
 ## Tech Stack
 
@@ -11,64 +11,63 @@ Sleep Command is a Flask web app for sleep efficiency prediction and live sleep 
 - SQLite for authentication data
 - HTMX for partial updates
 - Tailwind CSS via CDN
+- Plain JavaScript only
 - Flask-SocketIO and Three.js for the monitor
 - XGBoost, pandas, joblib for prediction
 
-## Page Map
+## Route Map
 
-- `/landing` -> `frontend/templates/landing.html` -> public product landing page.
-- `/login` -> `frontend/templates/auth/login.html` -> full-screen login flow.
-- `/register` -> `frontend/templates/auth/register.html` -> full-screen account creation flow.
-- `/` -> `frontend/templates/index.html` -> protected multi-step sleep prediction form and result panel.
-- `/chat` -> `frontend/templates/chat.html` -> protected DB-backed AI chat sessions.
-- `/monitor` -> `frontend/templates/monitor.html` -> protected live sensor monitor.
-- `/about` -> `frontend/templates/coming_soon.html` -> placeholder page.
-- `/contact` -> `frontend/templates/coming_soon.html` -> placeholder page.
+### Public
 
-## AI + Chat Summary
+- `/` -> `frontend/templates/landing.html`
+- `/landing` -> redirect to `/`
+- `/about` -> `frontend/templates/about.html`
+- `/contact` -> `frontend/templates/contact.html`
+- `/learn` -> `frontend/templates/learn.html`
+- `/login` -> `frontend/templates/auth/login.html`
+- `/register` -> `frontend/templates/auth/register.html`
 
-- Chat persistence uses `ChatSession` and `ChatMessage` tables in `backend/models.py`.
-- `ChatSession` belongs to a `User` and owns many `ChatMessage` records.
-- `ChatMessage` stores `role` (`user` or `assistant`), `content`, and UTC `created_at`.
-- Chat routes include `/api/chat`, `/api/chat/sessions`, `/api/chat/sessions/new`, `/api/chat/sessions/<id>/rename`, and `/api/chat/sessions/<id>` for delete.
-- Daily tips use `/api/tip` and `/api/tip/dismiss`.
-- Suggested question logic lives in `frontend/templates/chat.html`, keyed by last prediction score range.
-- Daily tip state is stored in Flask session per user and resets at midnight.
+### Protected
 
-## Seed Data
+- `/dashboard` -> `frontend/templates/dashboard.html`
+- `/predictor` -> `frontend/templates/index.html`
+- `/monitor` -> `frontend/templates/monitor.html`
+- `/chat` -> `frontend/templates/chat.html`
 
-- Seed script: `scripts/seed.py`.
-- Run with: `.venv/bin/python scripts/seed.py` or `python scripts/seed.py`.
-- Creates test login `alex@test.com` / `test1234`, prediction history, and sample chat sessions.
+### Protected backend routes that must stay stable
 
-## Design Rules Summary
+- `POST /predict`
+- `POST /predict/step`
+- `/api/chat`
+- `/api/chat/sessions`
+- `/api/tip`
+- sensor control and Socket.IO monitor routes
 
-- Base background is dark warm-grey `#1a1a1e`.
-- Purple-to-dark gradient hero cards are the primary design language.
-- All cards use `border border-white/10 bg-white/5 rounded-[20px]`.
-- Section labels use uppercase text, at least `text-white/60`, `letter-spacing: 0.12em`, and `font-weight: 500`.
-- Keep the interface restrained, dark, operational, and focused.
+## Product Direction
 
-## Auth Flow Summary
+- Use the product name `LunaSleep AI`
+- Product message: `AI + NLP + ML + IoT for sleep insight`
+- Copy should feel calm, sleep-focused, and explanatory rather than command-center oriented
 
-- `/login` and `/register` are public.
-- `/`, `/monitor`, `/predict`, and sensor controls require Flask-Login authentication.
-- `/chat`, `/api/chat`, `/api/chat/sessions`, and `/api/tip` require Flask-Login authentication.
-- Successful login and registration redirect to `/`.
-- Logout redirects to `/landing`.
-- Passwords are hashed with Werkzeug security helpers.
-- SQLite tables are created on startup with `db.create_all()`.
+## Design Direction
 
-## Planned Features
+- Base background stays `#1a1a1e`
+- Purple-to-dark gradient hero cards remain the key visual motif
+- Cards use `border border-white/10 bg-white/5 rounded-[20px]`
+- Section labels remain uppercase, restrained, and operational
 
-- User profile page
-- Sleep history / past predictions saved per user
-- Dark/light mode toggle
-- Export results as PDF
+## Guardrails
 
-## Agent Instructions
+- Do not break auth
+- Do not break ML prediction
+- Do not break AI chat
+- Do not break Socket.IO monitor logic
+- Avoid React, Next.js, Vue, npm, or any build step
+- Prefer Flask, Jinja2, HTMX, and plain JS
 
-- Always read this file first before making changes.
-- Never change design tokens without updating `DESIGN.md`.
-- Never touch Socket.IO logic in monitor.
-- Default to plain HTML + Jinja2, use HTMX for partial updates, only use React/Vue if a feature genuinely needs component-level reactivity.
+## Working Notes
+
+- Redirect login/register success to `/dashboard`
+- Redirect logout to `/`
+- Keep predictor UI on `/predictor`
+- Keep public informational pages public

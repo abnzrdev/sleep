@@ -1,0 +1,113 @@
+@startuml
+package "LunaSleep AI System" {
+  [User] as user
+  [Web Browser] as browser
+
+  package "Frontend" {
+    [Landing Page] as landing
+    [Dashboard] as dashboard
+    [Predictor] as predictor
+    [Monitor] as monitor
+    [AI Chat] as chat
+    [Authentication] as auth
+  }
+
+  package "Backend" {
+    [Flask App] as flask
+    [API Routes] as api
+    [Authentication System] as auth_sys
+    [ML Predictor] as ml
+    [AI Assistant] as ai
+    [Sensor Monitor] as sensor
+  }
+
+  package "Database" {
+    [User Model] as user_model
+    [Prediction History] as pred_hist
+    [Chat Sessions] as chat_sess
+    [Chat Messages] as chat_msg
+  }
+
+  package "External Systems" {
+    [NVIDIA NIM API] as nim
+  }
+}
+
+user --> browser
+browser --> landing
+browser --> dashboard
+browser --> predictor
+browser --> monitor
+browser --> chat
+browser --> auth
+
+landing --> flask
+dashboard --> flask
+predictor --> flask
+monitor --> flask
+chat --> flask
+auth --> flask
+
+flask --> api
+api --> auth_sys
+api --> ml
+api --> ai
+api --> sensor
+
+auth_sys --> user_model
+auth_sys --> pred_hist
+auth_sys --> chat_sess
+auth_sys --> chat_msg
+
+ml --> api
+ai --> nim
+sensor --> api
+
+user_model --> Database
+pred_hist --> Database
+chat_sess --> Database
+chat_msg --> Database
+
+flask --> Database
+
+note right of flask
+  Flask Application with:
+  - Flask-Login for authentication
+  - Flask-SQLAlchemy for database
+  - Flask-SocketIO for real-time monitoring
+  - HTMX for dynamic UI updates
+end note
+
+note right of ml
+  XGBoost model for sleep efficiency prediction
+  - Uses scikit-learn preprocessing
+  - Feature importance: Age, Gender, Sleep duration,
+    REM/Deep/Light sleep %, Awakenings,
+    Caffeine/Alcohol consumption, Smoking status,
+    Exercise frequency
+end note
+
+note right of ai
+  AI Assistant using NVIDIA NIM API
+  - Context-aware sleep coaching
+  - Personalized recommendations
+  - Chat session management
+end note
+
+note right of sensor
+  Real-time sensor monitoring
+  - MPU6050 accelerometer data
+  - Data simulation mode
+  - External sensor data support
+end note
+
+note right of nim
+  NVIDIA Inference Microservice API
+  - LLM inference for chat
+  - Daily tips generation
+end note
+
+Database : SQLite for user data
+Database : Authentication storage
+Database : Prediction history
+Database : Chat conversations
