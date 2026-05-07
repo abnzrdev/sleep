@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}LunaSleep AI | Learn{% endblock %}
+
+{% block content %}
+<section class="hero-band p-7 lg:p-10">
+    <div class="section-label">Learn</div>
+    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
+        Practical sleep concepts that make the data easier to understand.
+    </h1>
+    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
+        LunaSleep AI is built around interpretable sleep signals. These short guides explain the concepts behind the score, the monitor, and the AI coach.
+    </p>
+</section>
+
+<section class="mt-6 grid gap-6">
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Sleep Efficiency</div>
+        <h2 class="mt-4 text-3xl text-white">What is sleep efficiency?</h2>
+        <p class="mt-4 text-sm leading-7 text-white/70">
+            Sleep efficiency is the share of time in bed that you are actually asleep. Higher efficiency usually means less time spent awake after falling asleep and a more consolidated night.
+        </p>
+    </article>
+
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Awakenings</div>
+        <h2 class="mt-4 text-3xl text-white">Why awakenings matter</h2>
+        <p class="mt-4 text-sm leading-7 text-white/70">
+            Frequent awakenings can fragment sleep, reduce restorative stages, and lower sleep efficiency even when total time in bed looks adequate.
+        </p>
+    </article>
+
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Caffeine</div>
+        <h2 class="mt-4 text-3xl text-white">How caffeine affects sleep</h2>
+        <p class="mt-4 text-sm leading-7 text-white/70">
+            Caffeine can delay sleep onset, lighten sleep, and increase the chance of overnight disruption, especially when taken later in the day or in larger amounts.
+        </p>
+    </article>
+
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Movement</div>
+        <h2 class="mt-4 text-3xl text-white">How movement tracking helps</h2>
+        <p class="mt-4 text-sm leading-7 text-white/70">
+            Movement patterns can provide useful signals about restlessness, awakenings, and posture shifts. They do not tell the full story alone, but they add valuable context.
+        </p>
+    </article>
+
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">AI Guidance</div>
+        <h2 class="mt-4 text-3xl text-white">How AI can explain sleep data</h2>
+        <p class="mt-4 text-sm leading-7 text-white/70">
+            AI can summarize trends, answer questions in plain language, and connect the score with habits like caffeine timing, bedtime consistency, or repeated awakenings.
+        </p>
+    </article>
+</section>
+{% endblock %}

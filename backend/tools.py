@@ -72,7 +72,7 @@ def build_context(user_id) -> str:
 
     return "\n".join(
         [
-            "Injected Sleep Command user context:",
+            "Injected LunaSleep AI user context:",
             f"Profile: {context['user_profile']}",
             f"Last prediction: {context['last_prediction']}",
             f"Recent prediction history: {context['prediction_history']}",

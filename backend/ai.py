@@ -129,12 +129,12 @@ def generate_session_name(first_message: str) -> str:
     ]
     response, error_message = _completion(messages, stream=False, max_tokens=10, temperature=0.2)
     if error_message or response is None:
-        return "Sleep chat"
+        return "Sleep coach"
 
-    title = response.choices[0].message.content or "Sleep chat"
+    title = response.choices[0].message.content or "Sleep coach"
     title = title.translate(str.maketrans("", "", string.punctuation))
     words = [word.strip() for word in title.split() if word.strip()]
-    return " ".join(words[:5]) or "Sleep chat"
+    return " ".join(words[:5]) or "Sleep coach"
 
 
 def generate_daily_tip_text(user_id: int, user_name: str, score: float | None, time_of_day: str, previous_tip: str | None) -> str:
@@ -144,7 +144,7 @@ def generate_daily_tip_text(user_id: int, user_name: str, score: float | None, t
         {
             "role": "system",
             "content": (
-                "Write a warm personal sleep tip for Sleep Command. "
+                "Write a warm personal sleep tip for LunaSleep AI. "
                 "Use 2-3 short sentences max. Do not diagnose medical conditions."
             ),
         },

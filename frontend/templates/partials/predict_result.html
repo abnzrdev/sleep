@@ -1,13 +1,13 @@
 {% if prediction_percent is defined %}
 {% set score = prediction_percent %}
 {% if score <= 50 %}
-{% set insight = "Poor efficiency. Consider reducing screen time and caffeine before bed." %}
+{% set insight = "Sleep looked fragmented. Consider reducing late stimulation and caffeine before bed." %}
 {% elif score <= 75 %}
-{% set insight = "Moderate efficiency. Try keeping a consistent sleep schedule." %}
+{% set insight = "Sleep efficiency is moderate. A steadier bedtime and fewer awakenings may help." %}
 {% elif score <= 89 %}
-{% set insight = "Good efficiency. Small improvements can push this higher." %}
+{% set insight = "Sleep efficiency is good. Small improvements in routine consistency can push this higher." %}
 {% else %}
-{% set insight = "Excellent efficiency. Your sleep habits are well optimised." %}
+{% set insight = "Sleep efficiency is excellent. Your current routine appears to support solid rest." %}
 {% endif %}
 <div class="fade-in">
     <div class="section-label">Prediction Result</div>
@@ -51,7 +51,7 @@
 {% else %}
 <div id="predictor-guidance">
     <div class="section-label">Before You Submit</div>
-    <h2 class="mt-3 text-3xl text-white">What the form is asking</h2>
+    <h2 class="mt-3 text-3xl text-white">What LunaSleep AI is reading</h2>
     <ul class="mt-6 space-y-4 text-sm leading-6 text-white/65">
         <li>Profile basics help the model interpret age, encoded gender, and sleep duration together.</li>
         <li>Sleep-stage percentages describe how your night was split between REM, deep, and light sleep.</li>

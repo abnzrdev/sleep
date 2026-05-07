@@ -1,1 +1,1 @@
-"""Backend package for the Sleep Dashboard."""
+"""Backend package for LunaSleep AI."""

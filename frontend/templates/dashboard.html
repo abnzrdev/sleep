@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}LunaSleep AI | Dashboard{% endblock %}
+
+{% block content %}
+<section class="hero-band p-7 lg:p-10">
+    <div class="section-label">Dashboard</div>
+    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
+        Good {{ greeting_period }}, {{ current_user.name }}.
+    </h1>
+    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
+        Your workspace combines sleep score prediction, live movement monitoring, and AI coaching in one calm flow.
+    </p>
+</section>
+
+<section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
+    <div class="grid gap-6 md:grid-cols-2">
+        <article class="cohere-card-strong p-7">
+            <div class="section-label">Welcome</div>
+            <h2 class="mt-4 text-3xl text-white">Your sleep workspace is ready</h2>
+            <p class="mt-4 text-sm leading-6 text-white/65">
+                Use LunaSleep AI to estimate tonight's sleep efficiency, monitor movement, and ask for guidance in plain language.
+            </p>
+        </article>
+
+        <article class="cohere-card-strong p-7">
+            <div class="section-label">Predictor</div>
+            <h2 class="mt-4 text-3xl text-white">Run a sleep score</h2>
+            <p class="mt-4 text-sm leading-6 text-white/65">
+                Work through the guided intake and generate an ML-based sleep efficiency prediction.
+            </p>
+            <a href="/predictor" class="solid-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Open Predictor</a>
+        </article>
+
+        <article class="cohere-card-strong p-7">
+            <div class="section-label">Monitor</div>
+            <h2 class="mt-4 text-3xl text-white">Watch sleep movement</h2>
+            <p class="mt-4 text-sm leading-6 text-white/65">
+                Follow motion, awakenings, posture, and live session state from the connected sensor feed.
+            </p>
+            <a href="/monitor" class="outline-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Open Monitor</a>
+        </article>
+
+        <article class="cohere-card-strong p-7">
+            <div class="section-label">AI Coach</div>
+            <h2 class="mt-4 text-3xl text-white">Ask for interpretation</h2>
+            <p class="mt-4 text-sm leading-6 text-white/65">
+                Use natural language to explore what your patterns mean and which routine changes are worth testing.
+            </p>
+            <a href="/chat" class="outline-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Open AI Coach</a>
+        </article>
+    </div>
+
+    <aside class="cohere-card-strong p-7">
+        <div class="section-label">Latest Sleep Insight</div>
+        {% if latest_prediction %}
+        <h2 class="mt-4 text-5xl text-white">{{ "%.2f"|format(latest_prediction_percent) }}%</h2>
+        <p class="mt-4 text-sm leading-6 text-white/70">{{ latest_prediction_insight }}</p>
+        <div class="mt-6 grid gap-3">
+            <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
+                <p class="section-label">Recorded</p>
+                <p class="mt-3 text-sm text-white/75">{{ latest_prediction.created_at.strftime("%b %d, %Y %H:%M") }}</p>
+            </div>
+            <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
+                <p class="section-label">Next Step</p>
+                <p class="mt-3 text-sm leading-6 text-white/75">Compare this score with the monitor, then ask the AI coach what variable matters most.</p>
+            </div>
+        </div>
+        {% else %}
+        <h2 class="mt-4 text-3xl text-white">No insight yet</h2>
+        <p class="mt-4 text-sm leading-6 text-white/65">
+            Start with your first prediction to create a sleep score, then return here for the latest summary.
+        </p>
+        <a href="/predictor" class="solid-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Create First Prediction</a>
+        {% endif %}
+    </aside>
+</section>
+{% endblock %}

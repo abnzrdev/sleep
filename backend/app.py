@@ -3,7 +3,7 @@ import os
 import time
 from datetime import datetime, timezone
 
-from flask import Flask, Response, jsonify, render_template, request, session, stream_with_context
+from flask import Flask, Response, jsonify, redirect, render_template, request, session, stream_with_context, url_for
 from flask_login import current_user, login_required
 from flask_socketio import SocketIO
 from flask_wtf import CSRFProtect
@@ -177,6 +177,16 @@ def score_suggestions(score: float | None) -> list[str]:
     return ["What's keeping my score high?", "Can I reach 95%?", "What should I keep doing?"]
 
 
+def score_insight(score_percent: float) -> str:
+    if score_percent <= 50:
+        return "Rest looked fragmented. Start with fewer late stimulants and a steadier wind-down."
+    if score_percent <= 75:
+        return "Your sleep is holding together, but awakenings or timing may still be pulling efficiency down."
+    if score_percent <= 89:
+        return "You are in a healthy range. Small improvements in consistency can still lift recovery."
+    return "Your pattern looks strong. Protect the routine that is already helping you sleep well."
+
+
 def greeting_period() -> str:
     hour = datetime.now().hour
     if hour < 12:
@@ -186,22 +196,50 @@ def greeting_period() -> str:
     return "evening"
 
 
+@app.get("/")
+def home_page():
+    return render_template("landing.html", active_page="home")
+
+
 @app.get("/landing")
 def landing_page():
-    return render_template("landing.html", active_page="landing")
+    return redirect(url_for("home_page"))
 
 
 @app.get("/about")
 def about_page():
-    return render_template("coming_soon.html", page_title="About", active_page="about")
+    return render_template("about.html", active_page="about")
 
 
 @app.get("/contact")
 def contact_page():
-    return render_template("coming_soon.html", page_title="Contact", active_page="contact")
+    return render_template("contact.html", active_page="contact")
 
 
-@app.get("/")
+@app.get("/learn")
+def learn_page():
+    return render_template("learn.html", active_page="learn")
+
+
+@app.get("/dashboard")
+@login_required
+def dashboard_page():
+    last_prediction = (
+        PredictionHistory.query.filter_by(user_id=current_user.id)
+        .order_by(PredictionHistory.created_at.desc())
+        .first()
+    )
+    return render_template(
+        "dashboard.html",
+        active_page="dashboard",
+        latest_prediction=last_prediction,
+        latest_prediction_percent=round(last_prediction.score * 100, 2) if last_prediction else None,
+        latest_prediction_insight=score_insight(last_prediction.score * 100) if last_prediction else None,
+        greeting_period=greeting_period(),
+    )
+
+
+@app.get("/predictor")
 @login_required
 def predictor_page():
     predictor_state = get_predictor_state()
@@ -475,7 +513,7 @@ def api_chat():
             db.session.add(ChatMessage(session_id=chat_session_id, role="assistant", content=assistant_message))
             stored_session = db.session.get(ChatSession, chat_session_id)
             if stored_session and stored_session.user_id == user_id:
-                if is_first_message and stored_session.name == "New chat":
+                if is_first_message and stored_session.name == "New coach session":
                     stored_session.name = generate_session_name(message)
                 stored_session.updated_at = utc_now()
             db.session.commit()
@@ -563,7 +601,7 @@ def main() -> None:
     sensor_state.set_runtime_address(host, port)
 
     open_host = "127.0.0.1" if host == "0.0.0.0" else host
-    LOGGER.info("Sleep Dashboard starting")
+    LOGGER.info("LunaSleep AI starting")
     LOGGER.info("Host: %s", host)
     LOGGER.info("Port: %s", port)
     LOGGER.info("Debug: %s", debug)

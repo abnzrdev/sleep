@@ -58,7 +58,7 @@ class ChatSession(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False, index=True)
-    name = db.Column(db.String(80), nullable=False, default="New chat")
+    name = db.Column(db.String(80), nullable=False, default="New coach session")
     created_at = db.Column(
         db.DateTime(timezone=True),
         nullable=False,

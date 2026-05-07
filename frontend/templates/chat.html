@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Sleep Dashboard | Chat{% endblock %}
+{% block title %}LunaSleep AI | AI Coach{% endblock %}
 
 {% block head_extra %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
@@ -8,12 +8,12 @@
 
 {% block content %}
 <section class="hero-band p-7 lg:p-10">
-    <div class="section-label">Sleep Advisor</div>
+    <div class="section-label">AI Sleep Coach</div>
     <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
-        Talk through your sleep score, habits, and next steps.
+        Ask for plain-language explanations of your sleep score, habits, and next steps.
     </h1>
     <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
-        The assistant uses your latest Sleep Command context while still answering general sleep questions.
+        LunaSleep AI uses your latest prediction context while still answering general questions about sleep and recovery.
     </p>
 </section>
 
@@ -22,7 +22,7 @@
         <div class="flex items-center justify-between gap-3">
             <div>
                 <div class="section-label">Conversations</div>
-                <h2 class="mt-2 text-2xl text-white">Sleep chats</h2>
+                <h2 class="mt-2 text-2xl text-white">Coach sessions</h2>
             </div>
             <button id="new-chat-button" class="solid-button px-4 py-2 text-sm" type="button">New Chat</button>
         </div>
@@ -63,7 +63,7 @@
 
         <div class="sleep-chat-messages min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-6 lg:px-7">
             <div class="sleep-chat-empty {% if chat_messages %}hidden{% endif %} rounded-[20px] border border-white/10 bg-white/5 px-5 py-5 text-sm leading-6 text-white/55">
-                Ask about your latest prediction, sleep habits, or general sleep questions.
+                Ask about your latest prediction, recent awakenings, caffeine timing, or general sleep questions.
             </div>
             {% for message in chat_messages %}
             <div class="flex {% if message.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
@@ -89,7 +89,7 @@
                 {% endfor %}
             </div>
             <div class="flex gap-3">
-                <input class="sleep-chat-input min-w-0 flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#7aa7ff]" type="text" name="message" placeholder="Ask Sleep Command..." autocomplete="off" required>
+                <input class="sleep-chat-input min-w-0 flex-1 rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#7aa7ff]" type="text" name="message" placeholder="Ask LunaSleep AI..." autocomplete="off" required>
                 <button class="solid-button px-5 py-3 text-sm font-medium" type="submit">Send</button>
             </div>
         </form>
@@ -98,7 +98,7 @@
 
 <div id="rename-popup" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/55 px-4">
     <form class="cohere-card-strong w-full max-w-sm p-5" id="rename-form">
-        <div class="section-label">Rename Chat</div>
+        <div class="section-label">Rename Session</div>
         <input id="rename-input" class="mt-4 w-full rounded-[16px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none focus:border-[#7aa7ff]" maxlength="80" required>
         <div class="mt-4 flex justify-end gap-2">
             <button class="outline-button px-4 py-2 text-sm" type="button" data-popup-close>Cancel</button>
@@ -109,8 +109,8 @@
 
 <div id="delete-popup" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/55 px-4">
     <div class="cohere-card-strong w-full max-w-sm p-5">
-        <div class="section-label">Delete Chat</div>
-        <p class="mt-3 text-sm leading-6 text-white/70">Delete this chat and all messages?</p>
+        <div class="section-label">Delete Session</div>
+        <p class="mt-3 text-sm leading-6 text-white/70">Delete this coach session and all messages?</p>
         <div class="mt-4 flex justify-end gap-2">
             <button class="outline-button px-4 py-2 text-sm" type="button" data-popup-close>Cancel</button>
             <button id="delete-confirm" class="rounded-full bg-[#ff8f85] px-4 py-2 text-sm text-[#17171c]" type="button">Delete</button>

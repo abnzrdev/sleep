@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}LunaSleep AI | Contact{% endblock %}
+
+{% block content %}
+<section class="hero-band p-7 lg:p-10">
+    <div class="section-label">Contact</div>
+    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
+        Request a demo or start a product conversation.
+    </h1>
+    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
+        Use this page as a simple contact point for pilots, feedback, research discussions, or product walkthroughs.
+    </p>
+</section>
+
+<section class="mt-6 grid gap-6 lg:grid-cols-[0.95fr,1.05fr]">
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Reach Us</div>
+        <h2 class="mt-4 text-3xl text-white">Contact details</h2>
+        <div class="mt-6 space-y-4 text-sm leading-6 text-white/70">
+            <p><span class="text-white">Email:</span> hello@lunasleep.ai</p>
+            <p><span class="text-white">Demo:</span> Product walkthroughs available on request</p>
+            <p><span class="text-white">Focus:</span> Sleep analytics, AI guidance, and connected monitoring workflows</p>
+        </div>
+    </article>
+
+    <article class="cohere-card-strong p-7">
+        <div class="section-label">Request</div>
+        <h2 class="mt-4 text-3xl text-white">What to include</h2>
+        <ul class="mt-6 space-y-4 text-sm leading-6 text-white/70">
+            <li>Your role and organization.</li>
+            <li>Whether you want a product demo, technical review, or partnership discussion.</li>
+            <li>Any sleep data, hardware, or AI integration questions you want covered.</li>
+            <li>The best time window for a follow-up.</li>
+        </ul>
+    </article>
+</section>
+{% endblock %}

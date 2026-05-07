@@ -65,7 +65,7 @@ def find_available_port(host: str, start_port: int, max_port: int) -> int | None
 
 def resolve_runtime_config() -> tuple[str, int, bool]:
     parser = argparse.ArgumentParser(
-        description="Sleep Dashboard (ML Predictor + Live IMU Monitor)",
+        description="LunaSleep AI (ML Predictor + Live IMU Monitor)",
     )
     parser.add_argument("--host", default=os.getenv("HOST", "127.0.0.1"))
     parser.add_argument("--port", type=int, default=env_int("PORT", 5000))

@@ -61,7 +61,7 @@ def redirect_for_htmx(endpoint: str) -> Response:
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("predictor_page"))
+        return redirect(url_for("dashboard_page"))
 
     form = LoginForm()
     if form.validate_on_submit():
@@ -69,8 +69,8 @@ def login():
         if user and check_password_hash(user.password_hash, form.password.data):
             login_user(user)
             if wants_fragment():
-                return redirect_for_htmx("predictor_page")
-            return redirect(url_for("predictor_page"))
+                return redirect_for_htmx("dashboard_page")
+            return redirect(url_for("dashboard_page"))
         message = "Invalid email or password."
         form.password.errors.append(message)
         if wants_fragment():
@@ -89,7 +89,7 @@ def login():
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("predictor_page"))
+        return redirect(url_for("dashboard_page"))
 
     form = RegisterForm()
     if form.validate_on_submit():
@@ -111,8 +111,8 @@ def register():
         db.session.commit()
         login_user(user)
         if wants_fragment():
-            return redirect_for_htmx("predictor_page")
-        return redirect(url_for("predictor_page"))
+            return redirect_for_htmx("dashboard_page")
+        return redirect(url_for("dashboard_page"))
 
     if request.method == "POST":
         message = form_error_summary(form)
@@ -127,5 +127,5 @@ def register():
 def logout():
     logout_user()
     if wants_fragment():
-        return redirect_for_htmx("landing_page")
-    return redirect(url_for("landing_page"))
+        return redirect_for_htmx("home_page")
+    return redirect(url_for("home_page"))
