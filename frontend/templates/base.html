@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ current_lang }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}LunaSleep AI{% endblock %}</title>
+    <title>{% block title %}{{ t("app.name") }}{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -85,16 +85,30 @@
         }
 
         .nav-link {
-            border-radius: 9999px;
-            color: rgba(255, 255, 255, 0.72);
-            padding: 0.7rem 1rem;
-            transition: color 150ms ease, background-color 150ms ease;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.95rem;
+            line-height: 1;
+            transition: color 150ms ease;
         }
 
         .nav-link:hover,
         .nav-link-active {
-            background: rgba(255, 255, 255, 0.08);
             color: var(--cohere-white);
+        }
+
+        .lang-link {
+            border-radius: 9999px;
+            color: rgba(255, 255, 255, 0.7);
+            padding: 0.35rem 0.65rem;
+            font-size: 0.75rem;
+            line-height: 1;
+            transition: color 150ms ease, background-color 150ms ease;
+        }
+
+        .lang-link:hover,
+        .lang-link-active {
+            color: var(--cohere-white);
+            background: rgba(255, 255, 255, 0.14);
         }
 
         .input-shell {
@@ -201,33 +215,43 @@
 </head>
 <body class="min-h-screen bg-[#1a1a1e] text-cohere-near antialiased">
     <div class="min-h-screen">
-        <header class="border-b border-white/10 bg-[#1a1a1e]/90 backdrop-blur">
-            <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-                <div>
-                    <a href="{{ '/dashboard' if current_user.is_authenticated else '/' }}" class="display-face text-2xl text-white">LunaSleep AI</a>
-                    <p class="mt-1 text-sm text-white/45">AI + NLP + ML + IoT for calmer sleep insight</p>
-                </div>
-                <div class="flex flex-wrap items-center justify-end gap-3">
-                    <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1.5 text-xs text-white/70">
-                        <button class="nav-link nav-link-active px-3 py-2 text-xs" type="button">EN</button>
-                        <button class="nav-link px-3 py-2 text-xs" type="button">RU</button>
-                        <button class="nav-link px-3 py-2 text-xs" type="button">KZ</button>
-                    </div>
-                    <nav class="flex flex-wrap items-center gap-2 rounded-full border border-white/10 bg-white/5 p-1.5">
+        <header class="sticky top-0 z-40 border-b border-white/10 bg-[#1a1a1e]/90 backdrop-blur">
+            <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-10">
+                <a href="{{ '/dashboard' if current_user.is_authenticated else '/' }}" class="flex min-w-0 items-center gap-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white">
+                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" aria-hidden="true">
+                            <path d="M13.6 3.4a8.7 8.7 0 1 0 8.7 8.7a6.5 6.5 0 1 1-8.7-8.7z" stroke="currentColor" stroke-width="1.8" />
+                        </svg>
+                    </span>
+                    <span class="display-face truncate text-xl text-white">LunaSleep</span>
+                </a>
+                <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-2">
                     {% if current_user.is_authenticated %}
-                    <a href="/dashboard" class="nav-link {% if active_page == 'dashboard' %}nav-link-active{% endif %}">Dashboard</a>
-                    <a href="/predictor" class="nav-link {% if active_page == 'predictor' %}nav-link-active{% endif %}">Predictor</a>
-                    <a href="/monitor" class="nav-link {% if active_page == 'monitor' %}nav-link-active{% endif %}">Monitor</a>
-                    <a href="/chat" class="nav-link {% if active_page == 'chat' %}nav-link-active{% endif %}">AI Coach</a>
-                    <a href="/logout" class="nav-link">Logout</a>
-                    {% else %}
-                    <a href="/about" class="nav-link {% if active_page == 'about' %}nav-link-active{% endif %}">About</a>
-                    <a href="/learn" class="nav-link {% if active_page == 'learn' %}nav-link-active{% endif %}">Learn</a>
-                    <a href="/contact" class="nav-link {% if active_page == 'contact' %}nav-link-active{% endif %}">Contact</a>
-                    <a href="/login" class="nav-link {% if active_page == 'login' %}nav-link-active{% endif %}">Login</a>
-                    <a href="/register" class="solid-button px-4 py-2 text-sm">Get Started</a>
-                    {% endif %}
+                    <nav class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+                        <a href="/predictor" class="nav-link {% if active_page == 'predictor' %}nav-link-active{% endif %}">{{ t("nav.predictor") }}</a>
+                        <a href="/monitor" class="nav-link {% if active_page == 'monitor' %}nav-link-active{% endif %}">{{ t("nav.monitor") }}</a>
+                        <a href="/chat" class="nav-link {% if active_page == 'chat' %}nav-link-active{% endif %}">{{ t("nav.ai_coach") }}</a>
                     </nav>
+                    <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+                        <a href="/language/en" class="lang-link {% if current_lang == 'en' %}lang-link-active{% endif %}">EN</a>
+                        <a href="/language/ru" class="lang-link {% if current_lang == 'ru' %}lang-link-active{% endif %}">RU</a>
+                        <a href="/language/kk" class="lang-link {% if current_lang == 'kk' %}lang-link-active{% endif %}">KZ</a>
+                    </div>
+                    <a href="/logout" class="nav-link">{{ t("nav.logout") }}</a>
+                    {% else %}
+                    <nav class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+                        <a href="/about" class="nav-link {% if active_page == 'about' %}nav-link-active{% endif %}">{{ t("nav.about") }}</a>
+                        <a href="/learn" class="nav-link {% if active_page == 'learn' %}nav-link-active{% endif %}">{{ t("nav.learn") }}</a>
+                        <a href="/contact" class="nav-link {% if active_page == 'contact' %}nav-link-active{% endif %}">{{ t("nav.contact") }}</a>
+                    </nav>
+                    <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+                        <a href="/language/en" class="lang-link {% if current_lang == 'en' %}lang-link-active{% endif %}">EN</a>
+                        <a href="/language/ru" class="lang-link {% if current_lang == 'ru' %}lang-link-active{% endif %}">RU</a>
+                        <a href="/language/kk" class="lang-link {% if current_lang == 'kk' %}lang-link-active{% endif %}">KZ</a>
+                    </div>
+                    <a href="/login" class="nav-link {% if active_page == 'login' %}nav-link-active{% endif %}">{{ t("nav.login") }}</a>
+                    <a href="/register" class="solid-button px-4 py-2 text-sm">{{ t("nav.get_started") }}</a>
+                    {% endif %}
                 </div>
             </div>
         </header>
@@ -236,194 +260,6 @@
             {% block content %}{% endblock %}
         </main>
     </div>
-    {% if current_user.is_authenticated %}
-    <div id="floating-chat-shell" class="fixed bottom-5 right-5 z-50">
-        <section id="floating-chat-panel" class="cohere-card-strong mb-4 hidden w-[350px] max-w-[calc(100vw-2.5rem)] overflow-hidden shadow-2xl shadow-black/30" data-chat-root>
-            <div class="flex items-center justify-between border-b border-white/10 px-4 py-3">
-                <div>
-                    <div class="section-label">AI Sleep Coach</div>
-                    <p class="mt-1 text-sm text-white/70">Ask your sleep coach about trends and next steps.</p>
-                </div>
-                <a href="/chat" class="ghost-button text-xs text-white/60 hover:text-white">Full page</a>
-            </div>
-            <div class="sleep-chat-messages h-[300px] space-y-3 overflow-y-auto px-4 py-4 text-sm">
-                <div class="sleep-chat-empty rounded-[16px] border border-white/10 bg-white/5 px-4 py-3 text-white/55">
-                    No chat messages yet.
-                </div>
-            </div>
-            <div class="sleep-chat-typing hidden px-4 pb-2">
-                <div class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-2">
-                    <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
-                    <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
-                    <span class="sleep-chat-dot h-1.5 w-1.5 rounded-full bg-white/70"></span>
-                </div>
-            </div>
-            <form class="sleep-chat-form flex gap-2 border-t border-white/10 p-3">
-                <input class="sleep-chat-input min-w-0 flex-1 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#7aa7ff]" type="text" name="message" placeholder="Ask LunaSleep AI..." autocomplete="off" required>
-                <button class="solid-button px-4 py-2 text-sm" type="submit">Send</button>
-            </form>
-        </section>
-        <button id="floating-chat-button" class="solid-button flex h-14 w-14 items-center justify-center rounded-full text-xl shadow-2xl shadow-black/30" type="button" aria-label="Open sleep chat">
-            <span aria-hidden="true">AI</span>
-        </button>
-    </div>
-    <script>
-        (() => {
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
-            function createBubble(role, text = '') {
-                const wrapper = document.createElement('div');
-                wrapper.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
-
-                const bubble = document.createElement('div');
-                bubble.className = role === 'user'
-                    ? 'max-w-[82%] rounded-[18px] rounded-br-md bg-white px-4 py-3 text-sm text-[#17171c]'
-                    : 'max-w-[82%] rounded-[18px] rounded-bl-md border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white/75';
-                bubble.textContent = text;
-
-                wrapper.appendChild(bubble);
-                return { wrapper, bubble };
-            }
-
-            function scrollToBottom(messages) {
-                messages.scrollTop = messages.scrollHeight;
-            }
-
-            async function ensureSessionId(root) {
-                if (root.dataset.sessionId) {
-                    return root.dataset.sessionId;
-                }
-
-                const response = await fetch('/api/chat/sessions/new', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                });
-                if (!response.ok) {
-                    throw new Error(`Session request failed with ${response.status}`);
-                }
-                const payload = await response.json();
-                root.dataset.sessionId = String(payload.id);
-                return root.dataset.sessionId;
-            }
-
-            async function streamMessage(root, message) {
-                const messages = root.querySelector('.sleep-chat-messages');
-                const empty = root.querySelector('.sleep-chat-empty');
-                const typing = root.querySelector('.sleep-chat-typing');
-                const input = root.querySelector('.sleep-chat-input');
-
-                empty?.classList.add('hidden');
-                messages.appendChild(createBubble('user', message).wrapper);
-                input.value = '';
-                typing?.classList.remove('hidden');
-                root.dispatchEvent(new CustomEvent('sleep-chat:sent'));
-                scrollToBottom(messages);
-
-                let assistantBubble = null;
-                let receivedToken = false;
-
-                try {
-                    const sessionId = await ensureSessionId(root);
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken,
-                        },
-                        body: JSON.stringify({ message, session_id: sessionId }),
-                    });
-
-                    if (!response.ok || !response.body) {
-                        throw new Error(`Chat request failed with ${response.status}`);
-                    }
-
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-
-                    while (true) {
-                        const { value, done } = await reader.read();
-                        if (done) {
-                            break;
-                        }
-
-                        const token = decoder.decode(value, { stream: true });
-                        if (!receivedToken) {
-                            typing?.classList.add('hidden');
-                            const assistant = createBubble('assistant');
-                            assistantBubble = assistant.bubble;
-                            messages.appendChild(assistant.wrapper);
-                            receivedToken = true;
-                        }
-                        assistantBubble.textContent += token;
-                        scrollToBottom(messages);
-                    }
-                } catch (error) {
-                    console.error(error);
-                    typing?.classList.add('hidden');
-                    messages.appendChild(createBubble('assistant', 'AI assistant is unavailable right now.').wrapper);
-                } finally {
-                    typing?.classList.add('hidden');
-                    root.dispatchEvent(new CustomEvent('sleep-chat:completed'));
-                    scrollToBottom(messages);
-                    input.focus();
-                }
-            }
-
-            function mountChat(root) {
-                const form = root.querySelector('.sleep-chat-form');
-                const input = root.querySelector('.sleep-chat-input');
-                const messages = root.querySelector('.sleep-chat-messages');
-                if (!form || !input || !messages || form.dataset.mounted === 'true') {
-                    return;
-                }
-
-                form.dataset.mounted = 'true';
-                form.addEventListener('submit', (event) => {
-                    event.preventDefault();
-                    const message = input.value.trim();
-                    if (!message) {
-                        return;
-                    }
-                    streamMessage(root, message);
-                });
-                scrollToBottom(messages);
-            }
-
-            window.SleepChat = { mount: mountChat };
-
-            document.addEventListener('DOMContentLoaded', () => {
-                document.querySelectorAll('[data-chat-root]').forEach(mountChat);
-
-                const button = document.getElementById('floating-chat-button');
-                const panel = document.getElementById('floating-chat-panel');
-                if (!button || !panel) {
-                    return;
-                }
-
-                function closePanel() {
-                    panel.classList.add('hidden');
-                }
-
-                button.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    panel.classList.toggle('hidden');
-                    if (!panel.classList.contains('hidden')) {
-                        panel.querySelector('.sleep-chat-input')?.focus();
-                    }
-                });
-
-                panel.addEventListener('click', (event) => event.stopPropagation());
-
-                document.addEventListener('click', () => closePanel());
-                document.addEventListener('keydown', (event) => {
-                    if (event.key === 'Escape') {
-                        closePanel();
-                    }
-                });
-            });
-        })();
-    </script>
-    {% endif %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

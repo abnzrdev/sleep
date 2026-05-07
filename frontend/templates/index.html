@@ -1,32 +1,19 @@
 {% extends "base.html" %}
 
-{% block title %}LunaSleep AI | Predictor{% endblock %}
+{% block title %}{{ t("app.name") }} | {{ t("predictor.page_title") }}{% endblock %}
 
 {% block head_extra %}
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 {% endblock %}
 
 {% block content %}
-{% if show_daily_tip %}
-<section id="daily-tip-card" class="cohere-card-strong mb-6 p-5 lg:p-6">
-    <div class="flex items-start justify-between gap-4">
-        <div>
-            <div class="section-label">Daily Sleep Brief</div>
-            <h2 class="mt-2 text-2xl text-white">Good {{ greeting_period }}, {{ current_user.name }}.</h2>
-        </div>
-        <button id="daily-tip-dismiss" class="ghost-button rounded-full border border-white/10 px-3 py-1 text-lg leading-none text-white/60" type="button" aria-label="Dismiss daily tip">×</button>
-    </div>
-    <p id="daily-tip-text" class="mt-4 min-h-[3rem] max-w-3xl text-sm leading-6 text-white/70">{{ cached_daily_tip }}</p>
-</section>
-{% endif %}
-
 <section class="hero-band p-7 lg:p-10">
-    <div class="section-label">Sleep Score Predictor</div>
+    <div class="section-label">{{ t("predictor.hero_label") }}</div>
     <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
-        Predict sleep efficiency from routines, sleep stages, and night interruptions.
+        {{ t("predictor.hero_title") }}
     </h1>
     <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
-        Move through four calm steps, submit once, and review the model result without leaving the page.
+        {{ t("predictor.hero_copy") }}
     </p>
 </section>
 
@@ -43,46 +30,4 @@
 
 {% block scripts %}
 {{ super() }}
-{% if show_daily_tip %}
-<script>
-    (() => {
-        const card = document.getElementById('daily-tip-card');
-        const text = document.getElementById('daily-tip-text');
-        const dismiss = document.getElementById('daily-tip-dismiss');
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-
-        async function loadTip() {
-            try {
-                const response = await fetch('/api/tip');
-                if (!response.ok || !response.body) {
-                    throw new Error(`Tip request failed with ${response.status}`);
-                }
-                text.textContent = '';
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) {
-                        break;
-                    }
-                    text.textContent += decoder.decode(value, { stream: true });
-                }
-            } catch (error) {
-                console.error(error);
-                text.textContent = 'Keep tonight simple: protect a steady bedtime and give yourself a quiet wind-down window.';
-            }
-        }
-
-        dismiss?.addEventListener('click', async () => {
-            card?.classList.add('hidden');
-            await fetch('/api/tip/dismiss', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            });
-        });
-
-        loadTip();
-    })();
-</script>
-{% endif %}
 {% endblock %}

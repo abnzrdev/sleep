@@ -1,78 +1,122 @@
 {% extends "base.html" %}
 
-{% block title %}LunaSleep AI | Dashboard{% endblock %}
+{% block title %}{{ t("app.name") }} | {{ t("dashboard.page_title") }}{% endblock %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+{% endblock %}
 
 {% block content %}
-<section class="hero-band p-7 lg:p-10">
-    <div class="section-label">Dashboard</div>
+<section class="hero-band rounded-[24px] p-7 lg:p-10">
+    <div class="section-label">{{ t("dashboard.label") }}</div>
     <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
-        Good {{ greeting_period }}, {{ current_user.name }}.
+        {{ t("dashboard.greeting").format(period=greeting_period, name=current_user.name) }}
     </h1>
-    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
-        Your workspace combines sleep score prediction, live movement monitoring, and AI coaching in one calm flow.
-    </p>
+    <div class="mt-6 rounded-[20px] border border-white/10 bg-white/5 p-5">
+        <div class="section-label">{{ t("dashboard.ai_brief_label") }}</div>
+        <p id="daily-tip-text" class="mt-3 min-h-[4.5rem] whitespace-pre-line text-sm leading-6 text-white/80">{{ cached_daily_tip or t("dashboard.ai_brief_loading") }}</p>
+    </div>
 </section>
 
-<section class="mt-6 grid gap-6 xl:grid-cols-[1.2fr,0.8fr]">
-    <div class="grid gap-6 md:grid-cols-2">
-        <article class="cohere-card-strong p-7">
-            <div class="section-label">Welcome</div>
-            <h2 class="mt-4 text-3xl text-white">Your sleep workspace is ready</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">
-                Use LunaSleep AI to estimate tonight's sleep efficiency, monitor movement, and ask for guidance in plain language.
-            </p>
-        </article>
-
-        <article class="cohere-card-strong p-7">
-            <div class="section-label">Predictor</div>
-            <h2 class="mt-4 text-3xl text-white">Run a sleep score</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">
-                Work through the guided intake and generate an ML-based sleep efficiency prediction.
-            </p>
-            <a href="/predictor" class="solid-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Open Predictor</a>
-        </article>
-
-        <article class="cohere-card-strong p-7">
-            <div class="section-label">Monitor</div>
-            <h2 class="mt-4 text-3xl text-white">Watch sleep movement</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">
-                Follow motion, awakenings, posture, and live session state from the connected sensor feed.
-            </p>
-            <a href="/monitor" class="outline-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Open Monitor</a>
-        </article>
-
-        <article class="cohere-card-strong p-7">
-            <div class="section-label">AI Coach</div>
-            <h2 class="mt-4 text-3xl text-white">Ask for interpretation</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">
-                Use natural language to explore what your patterns mean and which routine changes are worth testing.
-            </p>
-            <a href="/chat" class="outline-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Open AI Coach</a>
-        </article>
-    </div>
-
-    <aside class="cohere-card-strong p-7">
-        <div class="section-label">Latest Sleep Insight</div>
-        {% if latest_prediction %}
-        <h2 class="mt-4 text-5xl text-white">{{ "%.2f"|format(latest_prediction_percent) }}%</h2>
-        <p class="mt-4 text-sm leading-6 text-white/70">{{ latest_prediction_insight }}</p>
-        <div class="mt-6 grid gap-3">
-            <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
-                <p class="section-label">Recorded</p>
-                <p class="mt-3 text-sm text-white/75">{{ latest_prediction.created_at.strftime("%b %d, %Y %H:%M") }}</p>
-            </div>
-            <div class="rounded-[20px] border border-white/10 bg-white/5 p-4">
-                <p class="section-label">Next Step</p>
-                <p class="mt-3 text-sm leading-6 text-white/75">Compare this score with the monitor, then ask the AI coach what variable matters most.</p>
-            </div>
+<section class="mt-6 grid gap-6 lg:grid-cols-[2fr,1fr]">
+    <article class="cohere-card-strong p-6">
+        <div class="section-label">{{ t("dashboard.score_trend_label") }}</div>
+        {% if chart_points|length >= 2 %}
+        <div class="mt-4 h-72">
+            <canvas id="dashboard-score-trend-chart" aria-label="{{ t('dashboard.score_trend_label') }}"></canvas>
         </div>
         {% else %}
-        <h2 class="mt-4 text-3xl text-white">No insight yet</h2>
-        <p class="mt-4 text-sm leading-6 text-white/65">
-            Start with your first prediction to create a sleep score, then return here for the latest summary.
-        </p>
-        <a href="/predictor" class="solid-button mt-6 inline-flex px-5 py-3 text-sm font-medium">Create First Prediction</a>
+        <h2 class="mt-4 text-2xl text-white">{{ t("dashboard.no_prediction_title") }}</h2>
+        <p class="mt-3 text-sm leading-6 text-white/65">{{ t("dashboard.no_prediction_description") }}</p>
         {% endif %}
-    </aside>
+    </article>
+
+    <article class="cohere-card-strong p-6">
+        <div class="section-label">{{ t("dashboard.latest_score_label") }}</div>
+        {% if latest_prediction %}
+        <p class="mt-3 text-5xl text-white">{{ "%.2f"|format(latest_prediction_percent) }}%</p>
+        <p class="mt-3 text-sm leading-6 text-white/75">{{ latest_prediction_insight }}</p>
+        <div class="mt-5 rounded-[16px] border border-white/10 bg-white/5 p-4">
+            <p class="section-label">{{ t("dashboard.recorded_label") }}</p>
+            <p class="mt-2 text-sm text-white/75">{{ latest_prediction.created_at.strftime("%b %d, %Y %H:%M") }}</p>
+        </div>
+        {% else %}
+        <h2 class="mt-4 text-2xl text-white">{{ t("dashboard.no_prediction_title") }}</h2>
+        <p class="mt-3 text-sm leading-6 text-white/65">{{ t("dashboard.no_prediction_description") }}</p>
+        {% endif %}
+    </article>
 </section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    const I18N_DASHBOARD = {
+        aiBriefLoading: {{ t("dashboard.ai_brief_loading")|tojson }},
+    };
+
+    (() => {
+        const chartElement = document.getElementById('dashboard-score-trend-chart');
+        const chartPoints = {{ chart_points|tojson }};
+        if (chartElement && chartPoints.length >= 2) {
+            new Chart(chartElement, {
+                type: 'line',
+                data: {
+                    labels: chartPoints.map((point) => point.date),
+                    datasets: [{
+                        data: chartPoints.map((point) => point.score),
+                        borderColor: '#7aa7ff',
+                        backgroundColor: 'rgba(122, 167, 255, 0.16)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#73d99f',
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: 'rgba(255,255,255,0.48)' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: { color: 'rgba(255,255,255,0.48)' },
+                            grid: { color: 'rgba(255,255,255,0.06)' },
+                        },
+                    },
+                },
+            });
+        }
+
+        const text = document.getElementById('daily-tip-text');
+        async function loadTip() {
+            if (!text) {
+                return;
+            }
+            text.textContent = I18N_DASHBOARD.aiBriefLoading;
+            try {
+                const response = await fetch('/api/tip');
+                if (!response.ok || !response.body) {
+                    throw new Error(`Tip request failed with ${response.status}`);
+                }
+                text.textContent = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    text.textContent += decoder.decode(value, { stream: true });
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        loadTip();
+    })();
+</script>
 {% endblock %}

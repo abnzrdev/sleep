@@ -1,57 +1,38 @@
 {% extends "base.html" %}
 
-{% block title %}LunaSleep AI | About{% endblock %}
+{% block title %}{{ t("app.name") }} | {{ t("about.page_title") }}{% endblock %}
 
 {% block content %}
-<section class="hero-band p-7 lg:p-10">
-    <div class="section-label">About LunaSleep AI</div>
-    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
-        A sleep-focused product built around explanation, not just measurement.
-    </h1>
-    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
-        LunaSleep AI brings together machine learning, natural-language guidance, and connected movement sensing to help users understand sleep efficiency in context.
-    </p>
-</section>
+<section class="mx-auto max-w-4xl">
+    <article class="border border-white/10 bg-white/5 rounded-[24px] p-7 lg:p-10">
+        <div class="section-label">{{ t("about.label") }}</div>
+        <h1 class="display-face mt-4 text-4xl leading-none text-white sm:text-5xl">{{ t("about.hero_title") }}</h1>
+        <p class="mt-5 text-base leading-7 text-white/75">{{ t("about.hero_copy") }}</p>
 
-<section class="mt-6 grid gap-6 md:grid-cols-3">
-    <article class="cohere-card-strong p-7">
-        <div class="section-label">ML Prediction</div>
-        <h2 class="mt-4 text-3xl text-white">Structured sleep scoring</h2>
-        <p class="mt-4 text-sm leading-6 text-white/65">
-            The predictor estimates sleep efficiency from age, duration, stages, awakenings, caffeine, and lifestyle context.
-        </p>
-    </article>
-    <article class="cohere-card-strong p-7">
-        <div class="section-label">IoT Monitoring</div>
-        <h2 class="mt-4 text-3xl text-white">Live movement context</h2>
-        <p class="mt-4 text-sm leading-6 text-white/65">
-            The monitor keeps live sensor telemetry visible so motion, posture, and awakenings can be reviewed alongside predictions.
-        </p>
-    </article>
-    <article class="cohere-card-strong p-7">
-        <div class="section-label">AI + NLP</div>
-        <h2 class="mt-4 text-3xl text-white">Plain-language coaching</h2>
-        <p class="mt-4 text-sm leading-6 text-white/65">
-            The AI coach explains scores, answers sleep questions, and helps translate data into realistic behavior changes.
-        </p>
-    </article>
-</section>
-
-<section class="mt-10 cohere-card-strong p-7 lg:p-8">
-    <div class="section-label">Product Direction</div>
-    <div class="mt-4 grid gap-6 lg:grid-cols-2">
-        <div>
-            <h2 class="text-3xl text-white">What LunaSleep AI is for</h2>
-            <p class="mt-4 text-sm leading-7 text-white/70">
-                The product is designed for people who want a calmer way to understand sleep quality: a guided score, a live movement view, and an AI coach that can explain what may matter next.
-            </p>
+        <div class="mt-8 space-y-7">
+            <section>
+                <div class="section-label">{{ t("about.cards.prediction.label") }}</div>
+                <h2 class="mt-3 text-2xl text-white">{{ t("about.cards.prediction.title") }}</h2>
+                <p class="mt-3 text-sm leading-7 text-white/70">{{ t("about.cards.prediction.copy") }}</p>
+            </section>
+            <section>
+                <div class="section-label">{{ t("about.cards.monitor.label") }}</div>
+                <h2 class="mt-3 text-2xl text-white">{{ t("about.cards.monitor.title") }}</h2>
+                <p class="mt-3 text-sm leading-7 text-white/70">{{ t("about.cards.monitor.copy") }}</p>
+            </section>
+            <section>
+                <div class="section-label">{{ t("about.cards.ai.label") }}</div>
+                <h2 class="mt-3 text-2xl text-white">{{ t("about.cards.ai.title") }}</h2>
+                <p class="mt-3 text-sm leading-7 text-white/70">{{ t("about.cards.ai.copy") }}</p>
+            </section>
+            <section>
+                <div class="section-label">{{ t("about.direction.label") }}</div>
+                <h2 class="mt-3 text-2xl text-white">{{ t("about.direction.for_title") }}</h2>
+                <p class="mt-3 text-sm leading-7 text-white/70">{{ t("about.direction.for_copy") }}</p>
+                <h3 class="mt-6 text-xl text-white">{{ t("about.direction.not_title") }}</h3>
+                <p class="mt-3 text-sm leading-7 text-white/70">{{ t("about.direction.not_copy") }}</p>
+            </section>
         </div>
-        <div>
-            <h2 class="text-3xl text-white">What it does not do</h2>
-            <p class="mt-4 text-sm leading-7 text-white/70">
-                LunaSleep AI does not replace clinical evaluation or diagnose medical conditions. It is built to support interpretation, reflection, and healthier nightly habits.
-            </p>
-        </div>
-    </div>
+    </article>
 </section>
 {% endblock %}

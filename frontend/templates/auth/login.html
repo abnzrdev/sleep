@@ -1,6 +1,6 @@
 {% extends "base_auth.html" %}
 
-{% block title %}LunaSleep AI | Login{% endblock %}
+{% block title %}{{ t("app.name") }} | {{ t("auth.login.page_title") }}{% endblock %}
 
 {% block content %}
 <main class="grid min-h-screen lg:grid-cols-[45fr,55fr]">
@@ -11,12 +11,12 @@
             <circle class="particle-line" cx="74%" cy="68%" r="3" fill="white" />
         </svg>
         <div class="relative max-w-xl self-end lg:self-auto">
-            <div class="section-label">Protected Access</div>
+            <div class="section-label">{{ t("auth.login.hero_label") }}</div>
             <h1 class="display-face mt-5 max-w-md text-5xl font-bold leading-none text-white sm:text-6xl">
-                Return to your sleep space.
+                {{ t("auth.login.hero_title") }}
             </h1>
             <p class="mt-6 hidden max-w-md text-base leading-7 text-white/70 lg:block">
-                Sign in to open your dashboard, predictor, monitor, and AI coach without interrupting the core sleep workflows.
+                {{ t("auth.login.hero_copy") }}
             </p>
         </div>
     </section>
@@ -26,7 +26,7 @@
     </section>
 
     <a href="/" class="fixed bottom-5 left-1/2 -translate-x-1/2 text-sm text-white/40 transition hover:text-white/70">
-        &larr; Back to landing
+        &larr; {{ t("common.back_to_landing") }}
     </a>
 </main>
 {% endblock %}

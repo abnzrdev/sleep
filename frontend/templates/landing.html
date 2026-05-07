@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}LunaSleep AI | Sleep Insight{% endblock %}
+{% block title %}{{ t("app.name") }} | {{ t("landing.page_title") }}{% endblock %}
 
 {% block head_extra %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/sleep-analysis.css') }}">
@@ -44,152 +44,71 @@
         display: none;
     }
 
-    .landing-feature-selector {
-        display: grid;
-        gap: 0.85rem;
+    .feature-choice {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.75rem 0.85rem;
+        text-align: left;
+        transition: border-color 150ms ease, opacity 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+        opacity: 0.6;
     }
 
-    .landing-feature-button {
-        width: 100%;
+    .feature-choice:hover,
+    .feature-choice:focus-visible {
+        border-color: rgba(122, 167, 255, 0.35);
+        opacity: 0.88;
+    }
+
+    .feature-choice[aria-selected="true"] {
+        opacity: 1;
+        border-color: rgba(122, 167, 255, 0.52);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 1px rgba(122, 167, 255, 0.2), 0 0 28px rgba(122, 167, 255, 0.16);
+    }
+
+    .feature-choice-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 9999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(122, 167, 255, 0.28);
+        background: radial-gradient(circle at 20% 20%, rgba(122, 167, 255, 0.24), rgba(255, 255, 255, 0.03));
+        color: #9bb9ff;
+    }
+
+    .feature-choice-arrow {
+        width: 1.65rem;
+        height: 1.65rem;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.72);
+    }
+
+    .feature-preview-shell {
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        background:
+            radial-gradient(circle at 15% 15%, rgba(122, 167, 255, 0.2), transparent 30%),
+            linear-gradient(140deg, rgba(41, 56, 103, 0.36), rgba(23, 23, 28, 0.95) 55%);
+        padding: 1.1rem;
+    }
+
+    .feature-preview-visual {
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
-        background: rgba(255, 255, 255, 0.03);
-        padding: 1.15rem 1.25rem;
-        text-align: left;
-        transition: border-color 160ms ease, background-color 160ms ease, opacity 160ms ease, transform 160ms ease;
-        opacity: 0.58;
-    }
-
-    .landing-feature-button:hover {
-        opacity: 0.78;
-        border-color: rgba(255, 255, 255, 0.18);
-    }
-
-    .landing-feature-button[aria-pressed="true"] {
-        border-color: rgba(122, 167, 255, 0.45);
-        background: rgba(255, 255, 255, 0.07);
-        opacity: 1;
-        transform: translateY(-1px);
-    }
-
-    .landing-feature-button[data-active="false"] .landing-feature-description {
-        display: none;
-    }
-
-    .landing-feature-button[data-active="false"] .landing-feature-title {
-        color: rgba(255, 255, 255, 0.7);
-    }
-
-    .landing-feature-button[data-active="false"] .section-label {
-        color: rgba(255, 255, 255, 0.46);
-    }
-
-    .landing-preview-wave {
-        position: relative;
-        overflow: hidden;
-        border-radius: 18px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background:
-            radial-gradient(circle at 15% 10%, rgba(122, 167, 255, 0.2), transparent 28%),
-            linear-gradient(135deg, rgba(155, 96, 170, 0.18), rgba(23, 23, 28, 0.88) 55%);
-    }
-
-    .landing-preview-wave::after {
-        content: "";
-        position: absolute;
-        inset: auto -10% -35% -10%;
-        height: 70%;
-        background:
-            radial-gradient(circle at 20% 35%, rgba(255, 255, 255, 0.2), transparent 18%),
-            radial-gradient(circle at 50% 45%, rgba(122, 167, 255, 0.28), transparent 24%),
-            radial-gradient(circle at 80% 25%, rgba(155, 96, 170, 0.26), transparent 16%);
-        opacity: 0.8;
-        filter: blur(30px);
-    }
-
-    .landing-preview-panel {
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.04);
-    }
-
-    .landing-preview-chart {
-        display: grid;
-        grid-template-columns: repeat(7, minmax(0, 1fr));
-        align-items: end;
-        gap: 0.75rem;
-        min-height: 9rem;
-    }
-
-    .landing-preview-chart span {
-        display: block;
-        width: 100%;
-        border-radius: 9999px;
-        background: linear-gradient(180deg, rgba(122, 167, 255, 0.95), rgba(155, 96, 170, 0.5));
-    }
-
-    .landing-preview-track {
-        position: relative;
-        height: 168px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 18px;
-        background:
-            linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-            rgba(255, 255, 255, 0.03);
-        background-size: 100% 42px, 48px 100%, auto;
-    }
-
-    .landing-preview-track::after {
-        content: "";
-        position: absolute;
-        left: 7%;
-        right: 7%;
-        top: 54%;
-        height: 2px;
-        border-radius: 9999px;
-        background: linear-gradient(90deg, rgba(122, 167, 255, 0.45), rgba(255, 255, 255, 0.18), rgba(155, 96, 170, 0.45));
-    }
-
-    .landing-preview-dot {
-        position: absolute;
-        width: 14px;
-        height: 14px;
-        border-radius: 9999px;
-        border: 2px solid rgba(255, 255, 255, 0.8);
-        background: rgba(122, 167, 255, 0.85);
-        box-shadow: 0 0 0 8px rgba(122, 167, 255, 0.08);
-    }
-
-    .landing-chat-stack {
-        display: grid;
-        gap: 0.9rem;
-    }
-
-    .landing-chat-bubble {
-        max-width: 88%;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 18px;
         background: rgba(255, 255, 255, 0.05);
-        padding: 1rem 1.1rem;
-        color: rgba(255, 255, 255, 0.72);
-        line-height: 1.6;
-    }
-
-    .landing-chat-bubble[data-tone="accent"] {
-        margin-left: auto;
-        background: linear-gradient(135deg, rgba(122, 167, 255, 0.18), rgba(155, 96, 170, 0.16));
-        color: rgba(255, 255, 255, 0.88);
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .landing-feature-button {
+        .feature-choice {
             transition: none;
-        }
-
-        .landing-feature-button[aria-pressed="true"] {
-            transform: none;
         }
 
         #freepik_stories-sleep-analysis.animated .animable,
@@ -201,19 +120,12 @@
     }
 
     @media (max-width: 1023px) {
-        .landing-feature-selector {
-            grid-auto-flow: column;
-            grid-auto-columns: minmax(240px, 1fr);
-            overflow-x: auto;
-            padding-bottom: 0.35rem;
+        .feature-choice {
+            opacity: 1;
         }
     }
 
     @media (max-width: 639px) {
-        .landing-preview-track {
-            height: 148px;
-        }
-
         .landing-hero-shell {
             min-height: auto;
         }
@@ -234,18 +146,19 @@
     <div class="mx-auto max-w-[1600px] grid gap-12 lg:grid-cols-[minmax(0,0.42fr),minmax(0,0.58fr)] lg:items-center lg:gap-20 xl:gap-24">
         <div class="landing-hero-copy">
             <h1 class="display-face max-w-2xl text-5xl leading-[1.02] text-white sm:text-6xl xl:text-7xl">
-                Understand your sleep with AI-powered insight.
+                {{ t("landing.hero_title") }}
+                <span class="block text-[#7aa7ff]">{{ t("landing.hero_highlight") }}</span>
             </h1>
             <p class="mt-6 max-w-2xl text-base leading-7 text-white/72 sm:text-lg sm:leading-8">
-                Predict sleep efficiency, follow overnight movement, and turn raw nightly signals into calmer, practical next steps.
+                {{ t("landing.hero_description") }}
             </p>
             <div class="mt-8 flex flex-wrap items-center gap-4">
                 {% if current_user.is_authenticated %}
-                <a href="/dashboard" class="solid-button px-6 py-3 text-sm font-medium">Get Started</a>
+                <a href="/dashboard" class="solid-button px-6 py-3 text-sm font-medium">{{ t("landing.get_started") }}</a>
                 {% else %}
-                <a href="/register" class="solid-button px-6 py-3 text-sm font-medium">Get Started</a>
+                <a href="/register" class="solid-button px-6 py-3 text-sm font-medium">{{ t("landing.get_started") }}</a>
                 {% endif %}
-                <a href="/learn" class="outline-button px-6 py-3 text-sm font-medium">Learn More</a>
+                <a href="/learn" class="outline-button px-6 py-3 text-sm font-medium">{{ t("landing.learn_more") }}</a>
             </div>
         </div>
 
@@ -260,161 +173,122 @@
 </section>
 
 <section class="mt-12">
-    <div class="section-label">Feature Showcase</div>
-    <div class="mt-4 grid gap-6 lg:grid-cols-[320px,minmax(0,1fr)] lg:items-start">
-        <div class="landing-feature-selector">
-            <button
-                type="button"
-                class="landing-feature-button"
-                data-feature-button
-                data-feature="prediction"
-                data-active="true"
-                aria-pressed="true">
-                <div class="section-label">01</div>
-                <h2 class="landing-feature-title mt-3 text-2xl text-white">Sleep Score Prediction</h2>
-                <p class="landing-feature-description mt-3 text-sm leading-6 text-white/62">Structured nightly inputs turn into a guided score preview you can compare over time.</p>
+    <div class="section-label">{{ t("landing.features_label") }}</div>
+    <h2 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl">{{ t("landing.features_title") }}</h2>
+
+    <div class="mt-6 flex flex-col gap-4">
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="listbox" aria-label="{{ t('landing.features_label') }}">
+            <button type="button" class="feature-choice" data-feature-button data-feature="predictor" aria-selected="true">
+                <div class="flex items-start gap-3">
+                    <span class="feature-choice-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none">
+                            <path d="M13 3a8 8 0 1 0 8 8a6 6 0 1 1-8-8z" stroke="currentColor" stroke-width="1.8" />
+                            <path d="M5 18h14M7 15l3-3 3 2 4-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-lg text-white">{{ t("landing.feature_predictor_title") }}</span>
+                        <span class="block text-xs leading-5 text-white/62">{{ t("landing.feature_predictor_description") }}</span>
+                    </span>
+                    <span class="feature-choice-arrow" aria-hidden="true">→</span>
+                </div>
             </button>
-            <button
-                type="button"
-                class="landing-feature-button"
-                data-feature-button
-                data-feature="monitor"
-                data-active="false"
-                aria-pressed="false">
-                <div class="section-label">02</div>
-                <h2 class="landing-feature-title mt-3 text-2xl text-white">Live Sleep Monitor</h2>
-                <p class="landing-feature-description mt-3 text-sm leading-6 text-white/62">Connected telemetry keeps the night readable through movement and awakening signals.</p>
+            <button type="button" class="feature-choice" data-feature-button data-feature="monitor" aria-selected="false">
+                <div class="flex items-start gap-3">
+                    <span class="feature-choice-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none">
+                            <rect x="4" y="6" width="16" height="12" rx="2.5" stroke="currentColor" stroke-width="1.8" />
+                            <path d="M7 13l3-2 2 1 3-3 2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-lg text-white">{{ t("landing.feature_monitor_title") }}</span>
+                        <span class="block text-xs leading-5 text-white/62">{{ t("landing.feature_monitor_description") }}</span>
+                    </span>
+                    <span class="feature-choice-arrow" aria-hidden="true">→</span>
+                </div>
             </button>
-            <button
-                type="button"
-                class="landing-feature-button"
-                data-feature-button
-                data-feature="coach"
-                data-active="false"
-                aria-pressed="false">
-                <div class="section-label">03</div>
-                <h2 class="landing-feature-title mt-3 text-2xl text-white">AI Sleep Coach</h2>
-                <p class="landing-feature-description mt-3 text-sm leading-6 text-white/62">The coach explains patterns and turns sleep data into next-step routine guidance.</p>
+            <button type="button" class="feature-choice" data-feature-button data-feature="ai" aria-selected="false">
+                <div class="flex items-start gap-3">
+                    <span class="feature-choice-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none">
+                            <path d="M5 7h14v9a2 2 0 0 1-2 2H9l-4 3v-4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.8" />
+                            <path d="M10 10h.01M14 10h.01M12 13h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </span>
+                    <span class="min-w-0 flex-1">
+                        <span class="block text-lg text-white">{{ t("landing.feature_ai_title") }}</span>
+                        <span class="block text-xs leading-5 text-white/62">{{ t("landing.feature_ai_description") }}</span>
+                    </span>
+                    <span class="feature-choice-arrow" aria-hidden="true">→</span>
+                </div>
             </button>
         </div>
 
-        <article class="border border-white/10 bg-white/5 rounded-[20px] p-5 sm:p-6 lg:p-7">
-            <div class="landing-preview-wave min-h-[440px] p-5 sm:p-6 lg:p-7">
-                <div class="relative z-10">
-                    <div class="flex flex-wrap items-start justify-between gap-4">
-                        <div>
-                            <div class="section-label" id="feature-preview-label">Sleep Score Prediction</div>
-                            <h3 class="mt-3 max-w-2xl text-3xl text-white sm:text-4xl" id="feature-preview-title">A guided score preview for each night.</h3>
-                        </div>
-                        <span class="status-pill border-white/10 bg-white/5 text-white/75" id="feature-preview-pill">ML Model</span>
+        <article class="feature-preview-shell w-full">
+            <div class="space-y-4" data-feature-panel="predictor">
+                <div class="section-label">{{ t("landing.features_label") }}</div>
+                <h3 class="text-3xl text-white sm:text-4xl">{{ t("landing.feature_predictor_preview_title") }}</h3>
+                <p class="text-sm leading-7 text-white/70 sm:text-base">{{ t("landing.feature_predictor_preview_description") }}</p>
+                <div class="feature-preview-visual p-4">
+                    <div class="grid grid-cols-7 items-end gap-2 h-32">
+                        <span class="rounded-full bg-[#8fb0ff] h-10"></span>
+                        <span class="rounded-full bg-[#8fb0ff] h-14"></span>
+                        <span class="rounded-full bg-[#8fb0ff] h-20"></span>
+                        <span class="rounded-full bg-[#8fb0ff] h-16"></span>
+                        <span class="rounded-full bg-[#7fd8bf] h-24"></span>
+                        <span class="rounded-full bg-[#8fb0ff] h-16"></span>
+                        <span class="rounded-full bg-[#7fd8bf] h-28"></span>
                     </div>
-                    <p class="mt-4 max-w-2xl text-sm leading-7 text-white/68 sm:text-base" id="feature-preview-copy">
-                        Preview how sleep duration, awakenings, and lifestyle signals shape efficiency so you can compare habits before and after routine changes.
-                    </p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/75">{{ t("landing.feature_predictor_tag_1") }}</span>
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/75">{{ t("landing.feature_predictor_tag_2") }}</span>
+                </div>
+            </div>
 
-                    <div class="mt-8 grid gap-4 lg:grid-cols-[1.08fr,0.92fr]">
-                        <div class="landing-preview-panel p-4 sm:p-5">
-                            <div class="section-label">Preview Surface</div>
-                            <div id="feature-visual-chart" class="mt-4 landing-preview-chart" aria-hidden="true">
-                                <span style="height: 42px;"></span>
-                                <span style="height: 68px;"></span>
-                                <span style="height: 92px;"></span>
-                                <span style="height: 58px;"></span>
-                                <span style="height: 108px;"></span>
-                                <span style="height: 74px;"></span>
-                                <span style="height: 122px;"></span>
-                            </div>
-                            <div id="feature-visual-track" class="mt-4 hidden landing-preview-track" aria-hidden="true">
-                                <span class="landing-preview-dot" style="left: 14%; top: 48%;"></span>
-                                <span class="landing-preview-dot" style="left: 33%; top: 32%;"></span>
-                                <span class="landing-preview-dot" style="left: 53%; top: 58%;"></span>
-                                <span class="landing-preview-dot" style="left: 76%; top: 40%;"></span>
-                            </div>
-                            <div id="feature-visual-chat" class="mt-4 hidden landing-chat-stack" aria-hidden="true">
-                                <div class="landing-chat-bubble">Your score improved, but the wake pattern still suggests restless sleep after midnight.</div>
-                                <div class="landing-chat-bubble" data-tone="accent">Try shifting your wind-down 30 minutes earlier and compare the next few nights.</div>
-                            </div>
-                        </div>
+            <div class="hidden space-y-4" data-feature-panel="monitor">
+                <div class="section-label">{{ t("landing.features_label") }}</div>
+                <h3 class="text-3xl text-white sm:text-4xl">{{ t("landing.feature_monitor_preview_title") }}</h3>
+                <p class="text-sm leading-7 text-white/70 sm:text-base">{{ t("landing.feature_monitor_preview_description") }}</p>
+                <div class="feature-preview-visual p-4">
+                    <svg viewBox="0 0 360 130" class="h-32 w-full" aria-hidden="true">
+                        <rect x="14" y="16" width="332" height="98" rx="16" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.14)" />
+                        <path d="M34 80c28-26 52-4 80-28s40-10 68 8s44 22 72-10s46-16 72-30" stroke="#7fd8bf" stroke-width="4" fill="none" stroke-linecap="round" />
+                        <circle cx="132" cy="58" r="5" fill="#8fb0ff" />
+                        <circle cx="234" cy="70" r="5" fill="#8fb0ff" />
+                    </svg>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/75">{{ t("landing.feature_monitor_tag_1") }}</span>
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/75">{{ t("landing.feature_monitor_tag_2") }}</span>
+                </div>
+            </div>
 
-                        <div class="landing-preview-panel p-4 sm:p-5">
-                            <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-                                <div>
-                                    <div class="section-label">Focus</div>
-                                    <div class="mt-3 text-xl text-white" id="feature-metric-one">Sleep efficiency</div>
-                                </div>
-                                <div>
-                                    <div class="section-label">Signal</div>
-                                    <div class="mt-3 text-xl text-white" id="feature-metric-two">Nightly inputs</div>
-                                </div>
-                                <div>
-                                    <div class="section-label">Outcome</div>
-                                    <div class="mt-3 text-xl text-white" id="feature-metric-three">Clearer trends</div>
-                                </div>
-                            </div>
-                            <p class="mt-6 text-sm leading-6 text-white/65" id="feature-note">
-                                Prediction creates a steady baseline before you compare it with real overnight movement and coaching.
-                            </p>
-                            <div class="mt-5 flex flex-wrap gap-2" id="feature-tags">
-                                <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-[0.12em] text-white/68">Sleep duration</span>
-                                <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-[0.12em] text-white/68">Awakenings</span>
-                                <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-[0.12em] text-white/68">Habit inputs</span>
-                            </div>
-                        </div>
-                    </div>
+            <div class="hidden space-y-4" data-feature-panel="ai">
+                <div class="section-label">{{ t("landing.features_label") }}</div>
+                <h3 class="text-3xl text-white sm:text-4xl">{{ t("landing.feature_ai_preview_title") }}</h3>
+                <p class="text-sm leading-7 text-white/70 sm:text-base">{{ t("landing.feature_ai_preview_description") }}</p>
+                <div class="feature-preview-visual p-4 space-y-3">
+                    <div class="max-w-[84%] rounded-[16px] border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/75">{{ t("landing.feature_ai_tag_1") }}</div>
+                    <div class="ml-auto max-w-[84%] rounded-[16px] border border-[#8fb0ff]/40 bg-[#8fb0ff]/15 px-3 py-2 text-sm text-white">{{ t("landing.feature_ai_tag_2") }}</div>
+                    <div class="max-w-[84%] rounded-[16px] border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/75">{{ t("landing.feature_ai_tag_2") }}</div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/75">{{ t("landing.feature_ai_tag_1") }}</span>
+                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/75">{{ t("landing.feature_ai_tag_2") }}</span>
                 </div>
             </div>
         </article>
     </div>
 </section>
 
-<section class="mt-12">
-    <div class="section-label">How It Works</div>
-    <div class="mt-4 grid gap-5 md:grid-cols-3">
-        <article class="cohere-card-strong p-6 sm:p-7">
-            <div class="section-label">Step 1</div>
-            <h2 class="mt-4 text-2xl text-white">Enter sleep details</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">Add your nightly sleep and routine inputs to generate a predicted efficiency score.</p>
-        </article>
-        <article class="cohere-card-strong p-6 sm:p-7">
-            <div class="section-label">Step 2</div>
-            <h2 class="mt-4 text-2xl text-white">Track movement and sensor data</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">Overlay connected movement signals and awakenings to understand what happened overnight.</p>
-        </article>
-        <article class="cohere-card-strong p-6 sm:p-7">
-            <div class="section-label">Step 3</div>
-            <h2 class="mt-4 text-2xl text-white">Get AI insight</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">Use the AI coach to translate the score and sensor context into practical next-step advice.</p>
-        </article>
-    </div>
-</section>
-
-<section class="mt-12">
-    <div class="section-label">Sleep Education Preview</div>
-    <div class="mt-4 grid gap-5 lg:grid-cols-3">
-        <article class="cohere-card p-6 sm:p-7">
-            <div class="section-label">Sleep Basics</div>
-            <h2 class="mt-4 text-2xl text-white">What is sleep efficiency?</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">A simple view of how much time in bed becomes actual sleep, and why that ratio matters.</p>
-        </article>
-        <article class="cohere-card p-6 sm:p-7">
-            <div class="section-label">Night Quality</div>
-            <h2 class="mt-4 text-2xl text-white">Why awakenings matter</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">Frequent wake periods can reduce recovery even when total sleep duration seems acceptable.</p>
-        </article>
-        <article class="cohere-card p-6 sm:p-7">
-            <div class="section-label">Interpretation</div>
-            <h2 class="mt-4 text-2xl text-white">How AI explains your sleep</h2>
-            <p class="mt-4 text-sm leading-6 text-white/65">LunaSleep AI turns prediction and telemetry into plain-language context you can act on.</p>
-        </article>
-    </div>
-</section>
-
-<footer class="mt-14 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
-    <span>&copy; 2026 LunaSleep AI</span>
+<footer class="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
+    <span>{{ t("landing.footer_copyright") }}</span>
     <nav class="flex flex-wrap gap-4">
-        <a class="hover:text-white" href="/about">About</a>
-        <a class="hover:text-white" href="/contact">Contact</a>
-        <a class="hover:text-white" href="https://github.com/abnzrdev/sleep" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="hover:text-white" href="/about">{{ t("nav.about") }}</a>
+        <a class="hover:text-white" href="/contact">{{ t("nav.contact") }}</a>
+        <a class="hover:text-white" href="https://github.com/abnzrdev/sleep" target="_blank" rel="noreferrer">{{ t("landing.github") }}</a>
     </nav>
 </footer>
 
@@ -422,103 +296,32 @@
     (() => {
         const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
         const svg = document.getElementById("freepik_stories-sleep-analysis");
-
-        const featureData = {
-            prediction: {
-                label: "Sleep Score Prediction",
-                title: "A guided score preview for each night.",
-                pill: "ML Model",
-                copy: "Preview how sleep duration, awakenings, and lifestyle signals shape efficiency so you can compare habits before and after routine changes.",
-                one: "Sleep efficiency",
-                two: "Nightly inputs",
-                three: "Clearer trends",
-                note: "Prediction creates a steady baseline before you compare it with real overnight movement and coaching.",
-                tags: ["Sleep duration", "Awakenings", "Habit inputs"],
-                visual: "chart",
-                bars: [42, 68, 92, 58, 108, 74, 122]
-            },
-            monitor: {
-                label: "Live Sleep Monitor",
-                title: "Movement and awakenings in real time.",
-                pill: "IoT Stream",
-                copy: "Use connected motion telemetry to watch sensor status, movement shifts, and awakenings as the sleep session evolves.",
-                one: "Movement",
-                two: "Awake events",
-                three: "Session status",
-                note: "The monitor adds live context so predicted sleep quality can be compared against actual overnight behavior.",
-                tags: ["Motion feed", "Awakening count", "Device status"],
-                visual: "track"
-            },
-            coach: {
-                label: "AI Sleep Coach",
-                title: "Turn sleep data into next steps.",
-                pill: "AI Coach",
-                copy: "Ask follow-up questions, keep a persistent sleep conversation, and turn technical sleep patterns into practical routines.",
-                one: "Guidance",
-                two: "Context",
-                three: "Next action",
-                note: "AI coaching closes the loop by explaining what changed, why it matters, and what you should test next.",
-                tags: ["Plain language", "Persistent chat", "Routine advice"],
-                visual: "chat"
-            }
-        };
-
         const buttons = Array.from(document.querySelectorAll("[data-feature-button]"));
-        const label = document.getElementById("feature-preview-label");
-        const title = document.getElementById("feature-preview-title");
-        const pill = document.getElementById("feature-preview-pill");
-        const copy = document.getElementById("feature-preview-copy");
-        const metricOne = document.getElementById("feature-metric-one");
-        const metricTwo = document.getElementById("feature-metric-two");
-        const metricThree = document.getElementById("feature-metric-three");
-        const note = document.getElementById("feature-note");
-        const tags = document.getElementById("feature-tags");
-        const chart = document.getElementById("feature-visual-chart");
-        const bars = Array.from(chart.querySelectorAll("span"));
-        const track = document.getElementById("feature-visual-track");
-        const chat = document.getElementById("feature-visual-chat");
+        const panels = Array.from(document.querySelectorAll("[data-feature-panel]"));
+        let selectedFeature = "predictor";
 
-        function setVisualMode(mode) {
-            chart.classList.toggle("hidden", mode !== "chart");
-            track.classList.toggle("hidden", mode !== "track");
-            chat.classList.toggle("hidden", mode !== "chat");
-        }
-
-        function renderFeature(key) {
-            const feature = featureData[key];
-            if (!feature) return;
-
+        function setActiveFeature(featureKey) {
+            selectedFeature = featureKey;
             buttons.forEach((button) => {
-                const isActive = button.dataset.feature === key;
-                button.setAttribute("aria-pressed", String(isActive));
-                button.dataset.active = String(isActive);
+                const active = button.dataset.feature === featureKey;
+                button.setAttribute("aria-selected", active ? "true" : "false");
             });
-
-            label.textContent = feature.label;
-            title.textContent = feature.title;
-            pill.textContent = feature.pill;
-            copy.textContent = feature.copy;
-            metricOne.textContent = feature.one;
-            metricTwo.textContent = feature.two;
-            metricThree.textContent = feature.three;
-            note.textContent = feature.note;
-            setVisualMode(feature.visual);
-
-            tags.innerHTML = feature.tags.map((tag) =>
-                `<span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs uppercase tracking-[0.12em] text-white/68">${tag}</span>`
-            ).join("");
-
-            if (feature.bars) {
-                bars.forEach((bar, index) => {
-                    const height = feature.bars[index] || 48;
-                    bar.style.height = `${height}px`;
-                });
-            }
+            panels.forEach((panel) => {
+                panel.classList.toggle("hidden", panel.dataset.featurePanel !== featureKey);
+            });
         }
 
         buttons.forEach((button) => {
-            button.addEventListener("click", () => renderFeature(button.dataset.feature));
+            button.addEventListener("click", () => setActiveFeature(button.dataset.feature));
+            button.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setActiveFeature(button.dataset.feature);
+                }
+            });
         });
+
+        setActiveFeature(selectedFeature);
 
         if (svg) {
             if (prefersReducedMotion.matches) {
@@ -535,8 +338,6 @@
                 }, 200);
             }
         }
-
-        renderFeature("prediction");
     })();
 </script>
 {% endblock %}

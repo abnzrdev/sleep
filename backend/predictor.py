@@ -3,6 +3,8 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
+from .i18n import t
+
 MODEL_PATH = Path(__file__).resolve().parent / "ml_models" / "xgboost_sleep_model.pkl"
 model = joblib.load(MODEL_PATH)
 
@@ -59,7 +61,7 @@ def parse_payload(raw_data: dict) -> dict:
     for feature in FEATURE_ORDER:
         value = raw_data.get(feature)
         if value in (None, ""):
-            errors.append(f"{feature} is required.")
+            errors.append(t("errors.field_required").format(field=t(f"predictor.fields.{feature}.label")))
             continue
 
         try:
@@ -68,12 +70,17 @@ def parse_payload(raw_data: dict) -> dict:
             else:
                 cleaned[feature] = float(value)
         except (TypeError, ValueError):
-            expected = "integer" if feature in INTEGER_FIELDS else "number"
-            errors.append(f"{feature} must be a valid {expected}.")
+            expected_key = "errors.expected_integer" if feature in INTEGER_FIELDS else "errors.expected_number"
+            errors.append(
+                t("errors.invalid_field_value").format(
+                    field=t(f"predictor.fields.{feature}.label"),
+                    expected=t(expected_key),
+                )
+            )
 
     for feature in BINARY_FIELDS:
         if feature in cleaned and cleaned[feature] not in (0, 1):
-            errors.append(f"{feature} must be 0 or 1.")
+            errors.append(t("errors.binary_field").format(field=t(f"predictor.fields.{feature}.label")))
 
     if errors:
         raise ValueError(" ".join(errors))

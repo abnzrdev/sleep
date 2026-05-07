@@ -2,9 +2,9 @@
 <div id="predict-form-panel">
     <div class="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
         <div>
-            <div class="section-label">Step {{ current_step }} of {{ steps|length }}</div>
+            <div class="section-label">{{ t("predictor.step_counter").format(current=current_step, total=steps|length) }}</div>
             <h2 class="mt-3 text-3xl text-white">{{ step.title }}</h2>
-            <p class="mt-2 text-sm text-white/55">Complete this section to help LunaSleep AI interpret your sleep context more accurately.</p>
+            <p class="mt-2 text-sm text-white/55">{{ t("predictor.step_intro") }}</p>
         </div>
         <span class="status-pill">{{ current_step }}/{{ steps|length }}</span>
     </div>
@@ -16,7 +16,7 @@
         {% for other_step in steps %}
             {% if other_step.index != current_step %}
                 {% for field in other_step.fields %}
-                    <input type="hidden" name="{{ field[0] }}" value="{{ form.get(field[0], '') }}">
+                    <input type="hidden" name="{{ field.name }}" value="{{ form.get(field.name, '') }}">
                 {% endfor %}
             {% endif %}
         {% endfor %}
@@ -24,27 +24,27 @@
         <div class="grid gap-4">
             {% for field in step.fields %}
             <label class="block">
-                <span class="section-label">{{ field[0] }}</span>
+                <span class="section-label">{{ field.label }}</span>
                 <div class="input-shell mt-2 px-4 py-3">
-                    <input class="w-full bg-transparent text-sm text-white outline-none" type="{{ field[2] }}" step="{{ field[3] }}" name="{{ field[0] }}" required value="{{ form.get(field[0], '') }}">
+                    <input class="w-full bg-transparent text-sm text-white outline-none" type="{{ field.type }}" step="{{ field.step }}" name="{{ field.name }}" required value="{{ form.get(field.name, '') }}">
                 </div>
-                <span class="mt-2 block text-sm leading-5 text-white/50">{{ field[1] }}</span>
+                <span class="mt-2 block text-sm leading-5 text-white/50">{{ field.help }}</span>
             </label>
             {% endfor %}
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
             {% if current_step > 1 %}
-            <button type="submit" name="direction" value="back" class="outline-button px-5 py-3 text-sm font-medium">Back</button>
+            <button type="submit" name="direction" value="back" class="outline-button px-5 py-3 text-sm font-medium">{{ t("common.back") }}</button>
             {% else %}
             <span></span>
             {% endif %}
 
             {% if current_step < steps|length %}
-            <button type="submit" name="direction" value="next" class="solid-button px-5 py-3 text-sm font-medium">Next</button>
+            <button type="submit" name="direction" value="next" class="solid-button px-5 py-3 text-sm font-medium">{{ t("common.next") }}</button>
             {% else %}
             <button type="button" hx-post="/predict" hx-include="#predict-form-panel" hx-target="#result" hx-swap="innerHTML" class="solid-button px-5 py-3 text-sm font-medium">
-                Submit
+                {{ t("common.submit") }}
             </button>
             {% endif %}
         </div>

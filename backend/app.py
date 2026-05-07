@@ -3,7 +3,7 @@ import os
 import time
 from datetime import datetime, timezone
 
-from flask import Flask, Response, jsonify, redirect, render_template, request, session, stream_with_context, url_for
+from flask import Flask, Response, g, jsonify, redirect, render_template, request, session, stream_with_context, url_for
 from flask_login import current_user, login_required
 from flask_socketio import SocketIO
 from flask_wtf import CSRFProtect
@@ -11,44 +11,45 @@ from flask_wtf import CSRFProtect
 from .ai import CHARACTER_DELAY_SECONDS, generate_daily_tip_text, generate_session_name, stream_chat_response
 from .auth import auth_bp
 from .config import ROOT_DIR, external_sensor_only_enabled, resolve_runtime_config
+from .i18n import SUPPORTED_LANGUAGES, get_current_language, load_translations, set_current_language, t
 from .models import ChatMessage, ChatSession, PredictionHistory, db, login_manager
 from .predictor import FEATURE_ORDER, default_form_values, parse_payload, predict_sleep_efficiency
 from .sensor import SensorState
 
-PREDICT_STEPS = [
+PREDICT_STEP_CONFIG = [
     {
         "index": 1,
-        "title": "Profile basics",
+        "title_key": "predictor.steps.profile.title",
         "fields": [
-            ("Age", "Your age in years. Sleep patterns often shift by age group.", "number", "1"),
-            ("Gender", "Use the same 0 or 1 encoding used by the training data.", "number", "1"),
-            ("Sleep duration", "How many hours you slept, including decimals such as 7.5.", "number", "0.1"),
+            ("Age", "predictor.fields.Age.label", "predictor.fields.Age.help", "number", "1"),
+            ("Gender", "predictor.fields.Gender.label", "predictor.fields.Gender.help", "number", "1"),
+            ("Sleep duration", "predictor.fields.Sleep duration.label", "predictor.fields.Sleep duration.help", "number", "0.1"),
         ],
     },
     {
         "index": 2,
-        "title": "Sleep stages",
+        "title_key": "predictor.steps.stages.title",
         "fields": [
-            ("REM sleep percentage", "Percent of the night spent in REM sleep.", "number", "1"),
-            ("Deep sleep percentage", "Percent of the night spent in deep sleep.", "number", "1"),
-            ("Light sleep percentage", "Percent of the night spent in light sleep.", "number", "1"),
+            ("REM sleep percentage", "predictor.fields.REM sleep percentage.label", "predictor.fields.REM sleep percentage.help", "number", "1"),
+            ("Deep sleep percentage", "predictor.fields.Deep sleep percentage.label", "predictor.fields.Deep sleep percentage.help", "number", "1"),
+            ("Light sleep percentage", "predictor.fields.Light sleep percentage.label", "predictor.fields.Light sleep percentage.help", "number", "1"),
         ],
     },
     {
         "index": 3,
-        "title": "Night interruptions",
+        "title_key": "predictor.steps.interruptions.title",
         "fields": [
-            ("Awakenings", "How many times you woke up during the night.", "number", "1"),
-            ("Caffeine consumption", "Approximate caffeine intake before sleep, in milligrams.", "number", "1"),
+            ("Awakenings", "predictor.fields.Awakenings.label", "predictor.fields.Awakenings.help", "number", "1"),
+            ("Caffeine consumption", "predictor.fields.Caffeine consumption.label", "predictor.fields.Caffeine consumption.help", "number", "1"),
         ],
     },
     {
         "index": 4,
-        "title": "Lifestyle factors",
+        "title_key": "predictor.steps.lifestyle.title",
         "fields": [
-            ("Alcohol consumption", "Number of alcoholic drinks before sleep.", "number", "1"),
-            ("Smoking status", "Use 0 for no and 1 for yes.", "number", "1"),
-            ("Exercise frequency", "How many exercise sessions you usually complete per week.", "number", "1"),
+            ("Alcohol consumption", "predictor.fields.Alcohol consumption.label", "predictor.fields.Alcohol consumption.help", "number", "1"),
+            ("Smoking status", "predictor.fields.Smoking status.label", "predictor.fields.Smoking status.help", "number", "1"),
+            ("Exercise frequency", "predictor.fields.Exercise frequency.label", "predictor.fields.Exercise frequency.help", "number", "1"),
         ],
     },
 ]
@@ -84,6 +85,20 @@ with app.app_context():
     db.create_all()
 
 
+@app.before_request
+def set_request_language() -> None:
+    g.lang = get_current_language()
+
+
+@app.context_processor
+def inject_i18n_context() -> dict:
+    return {
+        "t": t,
+        "current_lang": get_current_language(),
+        "languages": SUPPORTED_LANGUAGES,
+    }
+
+
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
@@ -98,20 +113,58 @@ def iso_datetime(value: datetime | None) -> str | None:
 
 def relative_time(value: datetime | None) -> str:
     if value is None:
-        return "just now"
+        return t("common.just_now")
     if value.tzinfo is None:
         value = value.replace(tzinfo=timezone.utc)
     seconds = max(0, int((utc_now() - value.astimezone(timezone.utc)).total_seconds()))
     if seconds < 60:
-        return "just now"
+        return t("common.just_now")
     minutes = seconds // 60
     if minutes < 60:
-        return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+        return t("common.minutes_ago").format(count=minutes)
     hours = minutes // 60
     if hours < 24:
-        return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        return t("common.hours_ago").format(count=hours)
     days = hours // 24
-    return f"{days} day{'s' if days != 1 else ''} ago"
+    return t("common.days_ago").format(count=days)
+
+
+def get_predict_steps() -> list[dict]:
+    steps = []
+    for step in PREDICT_STEP_CONFIG:
+        steps.append(
+            {
+                "index": step["index"],
+                "title": t(step["title_key"]),
+                "fields": [
+                    {
+                        "name": field[0],
+                        "label": t(field[1]),
+                        "help": t(field[2]),
+                        "type": field[3],
+                        "step": field[4],
+                    }
+                    for field in step["fields"]
+                ],
+            }
+        )
+    return steps
+
+
+def default_chat_session_name() -> str:
+    return t("chat.new_session")
+
+
+def is_default_chat_session_name(name: str) -> bool:
+    default_names = {"New coach session", "New chat"}
+    for lang in SUPPORTED_LANGUAGES:
+        translations = load_translations(lang)
+        chat_labels = translations.get("chat") if isinstance(translations, dict) else None
+        if isinstance(chat_labels, dict):
+            localized_name = chat_labels.get("new_session")
+            if isinstance(localized_name, str):
+                default_names.add(localized_name)
+    return name in default_names
 
 
 def predictor_session_key() -> str:
@@ -130,7 +183,7 @@ def get_predictor_state() -> dict:
         step = int(stored.get("step", 1))
     except (TypeError, ValueError):
         step = 1
-    return {"step": max(1, min(len(PREDICT_STEPS), step)), "values": values}
+    return {"step": max(1, min(len(PREDICT_STEP_CONFIG), step)), "values": values}
 
 
 def save_predictor_state(step: int, incoming: dict) -> dict:
@@ -141,7 +194,7 @@ def save_predictor_state(step: int, incoming: dict) -> dict:
             values[feature] = incoming.get(feature, "")
 
     session[predictor_session_key()] = {
-        "step": max(1, min(len(PREDICT_STEPS), step)),
+        "step": max(1, min(len(PREDICT_STEP_CONFIG), step)),
         "values": values,
     }
     session.modified = True
@@ -168,36 +221,54 @@ def serialize_chat_session(chat_session: ChatSession) -> dict:
 
 def score_suggestions(score: float | None) -> list[str]:
     if score is None:
-        return ["What affects sleep efficiency?", "How do I improve my score?", "What should I track tonight?"]
+        return [
+            t("chat.suggestions.no_score.1"),
+            t("chat.suggestions.no_score.2"),
+            t("chat.suggestions.no_score.3"),
+        ]
     percent = score * 100
     if percent < 60:
-        return ["Why is my score low?", "What hurts sleep efficiency?", "How do I improve my score?"]
+        return [
+            t("chat.suggestions.low.1"),
+            t("chat.suggestions.low.2"),
+            t("chat.suggestions.low.3"),
+        ]
     if percent <= 80:
-        return ["How can I push my score higher?", "What does my score mean?", "Is my sleep schedule consistent?"]
-    return ["What's keeping my score high?", "Can I reach 95%?", "What should I keep doing?"]
+        return [
+            t("chat.suggestions.medium.1"),
+            t("chat.suggestions.medium.2"),
+            t("chat.suggestions.medium.3"),
+        ]
+    return [
+        t("chat.suggestions.high.1"),
+        t("chat.suggestions.high.2"),
+        t("chat.suggestions.high.3"),
+    ]
 
 
 def score_insight(score_percent: float) -> str:
     if score_percent <= 50:
-        return "Rest looked fragmented. Start with fewer late stimulants and a steadier wind-down."
+        return t("dashboard.latest_insight.low")
     if score_percent <= 75:
-        return "Your sleep is holding together, but awakenings or timing may still be pulling efficiency down."
+        return t("dashboard.latest_insight.medium")
     if score_percent <= 89:
-        return "You are in a healthy range. Small improvements in consistency can still lift recovery."
-    return "Your pattern looks strong. Protect the routine that is already helping you sleep well."
+        return t("dashboard.latest_insight.good")
+    return t("dashboard.latest_insight.excellent")
 
 
 def greeting_period() -> str:
     hour = datetime.now().hour
     if hour < 12:
-        return "morning"
+        return t("common.period_morning")
     if hour < 18:
-        return "afternoon"
-    return "evening"
+        return t("common.period_afternoon")
+    return t("common.period_evening")
 
 
 @app.get("/")
 def home_page():
+    if current_user.is_authenticated:
+        return redirect(url_for("dashboard_page"))
     return render_template("landing.html", active_page="home")
 
 
@@ -221,6 +292,12 @@ def learn_page():
     return render_template("learn.html", active_page="learn")
 
 
+@app.get("/language/<lang>")
+def switch_language(lang: str):
+    set_current_language(lang)
+    return redirect(request.referrer or url_for("home_page"))
+
+
 @app.get("/dashboard")
 @login_required
 def dashboard_page():
@@ -229,12 +306,28 @@ def dashboard_page():
         .order_by(PredictionHistory.created_at.desc())
         .first()
     )
+    chart_predictions = (
+        PredictionHistory.query.filter_by(user_id=current_user.id)
+        .order_by(PredictionHistory.created_at.desc())
+        .limit(7)
+        .all()
+    )
+    tip_key = f"daily_tip:{current_user.id}"
     return render_template(
         "dashboard.html",
         active_page="dashboard",
         latest_prediction=last_prediction,
         latest_prediction_percent=round(last_prediction.score * 100, 2) if last_prediction else None,
         latest_prediction_insight=score_insight(last_prediction.score * 100) if last_prediction else None,
+        chart_points=[
+            {
+                "date": prediction.created_at.strftime("%d.%m"),
+                "score": round(prediction.score * 100, 2),
+                "recorded_at": prediction.created_at.strftime("%b %d, %Y %H:%M"),
+            }
+            for prediction in reversed(chart_predictions)
+        ],
+        cached_daily_tip=(session.get(tip_key) or {}).get("tip") if (session.get(tip_key) or {}).get("date") == datetime.now().date().isoformat() else "",
         greeting_period=greeting_period(),
     )
 
@@ -243,18 +336,13 @@ def dashboard_page():
 @login_required
 def predictor_page():
     predictor_state = get_predictor_state()
-    tip_key = f"daily_tip:{current_user.id}"
-    dismissed_key = f"daily_tip_dismissed:{current_user.id}"
-    today = datetime.now().date().isoformat()
+    translated_steps = get_predict_steps()
     return render_template(
         "index.html",
         active_page="predictor",
         form=predictor_state["values"],
-        steps=PREDICT_STEPS,
+        steps=translated_steps,
         current_step=predictor_state["step"],
-        show_daily_tip=session.get(dismissed_key) != today,
-        cached_daily_tip=(session.get(tip_key) or {}).get("tip") if (session.get(tip_key) or {}).get("date") == today else "",
-        greeting_period=greeting_period(),
     )
 
 
@@ -262,18 +350,19 @@ def predictor_page():
 @login_required
 def predict_step():
     incoming = request.form.to_dict()
+    translated_steps = get_predict_steps()
     try:
         current_step = int(incoming.get("step", "1"))
     except ValueError:
         current_step = 1
     direction = incoming.get("direction", "next")
     next_step = current_step - 1 if direction == "back" else current_step + 1
-    next_step = max(1, min(len(PREDICT_STEPS), next_step))
+    next_step = max(1, min(len(PREDICT_STEP_CONFIG), next_step))
     form_values = save_predictor_state(next_step, incoming)
     return render_template(
         "partials/predict_form.html",
         form=form_values,
-        steps=PREDICT_STEPS,
+        steps=translated_steps,
         current_step=next_step,
     )
 
@@ -295,13 +384,14 @@ def monitor_page():
 @login_required
 def predict():
     is_hx_request = request.headers.get("HX-Request") == "true"
+    translated_steps = get_predict_steps()
     incoming = request.get_json(silent=True) if request.is_json else request.form.to_dict()
     incoming = incoming or {}
 
     try:
         patient_data = parse_payload(incoming)
     except ValueError as exc:
-        form_values = save_predictor_state(len(PREDICT_STEPS), incoming)
+        form_values = save_predictor_state(len(PREDICT_STEP_CONFIG), incoming)
         if request.is_json:
             return jsonify({"error": str(exc)}), 400
         if is_hx_request:
@@ -312,8 +402,8 @@ def predict():
                 active_page="predictor",
                 error=str(exc),
                 form=form_values,
-                steps=PREDICT_STEPS,
-                current_step=len(PREDICT_STEPS),
+                steps=translated_steps,
+                current_step=len(PREDICT_STEP_CONFIG),
             ),
             400,
         )
@@ -361,8 +451,8 @@ def predict():
         raw_score=raw,
         bounded_score=bounded_score,
         form=incoming,
-        steps=PREDICT_STEPS,
-        current_step=len(PREDICT_STEPS),
+        steps=translated_steps,
+        current_step=len(PREDICT_STEP_CONFIG),
     )
 
 
@@ -375,7 +465,7 @@ def chat_page():
         .all()
     )
     if not chat_sessions:
-        chat_session = ChatSession(user_id=current_user.id)
+        chat_session = ChatSession(user_id=current_user.id, name=default_chat_session_name())
         db.session.add(chat_session)
         db.session.commit()
         chat_sessions = [chat_session]
@@ -413,7 +503,7 @@ def chat_page():
         last_prediction_score=last_prediction.score if last_prediction else None,
         chart_points=[
             {
-                "date": prediction.created_at.strftime("%b %d"),
+                "date": prediction.created_at.strftime("%d.%m"),
                 "score": round(prediction.score * 100, 2),
             }
             for prediction in reversed(chart_predictions)
@@ -435,7 +525,7 @@ def api_chat_sessions():
 @app.post("/api/chat/sessions/new")
 @login_required
 def api_chat_session_new():
-    chat_session = ChatSession(user_id=current_user.id)
+    chat_session = ChatSession(user_id=current_user.id, name=default_chat_session_name())
     db.session.add(chat_session)
     db.session.commit()
     return jsonify({"id": chat_session.id})
@@ -446,12 +536,12 @@ def api_chat_session_new():
 def api_chat_session_rename(session_id: int):
     chat_session = chat_session_or_404(session_id)
     if chat_session is None:
-        return jsonify({"error": "Chat session not found."}), 404
+        return jsonify({"error": t("errors.chat_session_not_found")}), 404
 
     payload = request.get_json(silent=True) or {}
     name = str(payload.get("name", "")).strip()[:80]
     if not name:
-        return jsonify({"error": "Name is required."}), 400
+        return jsonify({"error": t("errors.name_required")}), 400
 
     chat_session.name = name
     chat_session.updated_at = utc_now()
@@ -464,7 +554,7 @@ def api_chat_session_rename(session_id: int):
 def api_chat_session_delete(session_id: int):
     chat_session = chat_session_or_404(session_id)
     if chat_session is None:
-        return jsonify({"error": "Chat session not found."}), 404
+        return jsonify({"error": t("errors.chat_session_not_found")}), 404
 
     db.session.delete(chat_session)
     db.session.commit()
@@ -477,16 +567,16 @@ def api_chat():
     payload = request.get_json(silent=True) or {}
     message = str(payload.get("message", "")).strip()
     if not message:
-        return jsonify({"error": "Message is required."}), 400
+        return jsonify({"error": t("errors.message_required")}), 400
 
     try:
         session_id = int(payload.get("session_id"))
     except (TypeError, ValueError):
-        return jsonify({"error": "session_id is required."}), 400
+        return jsonify({"error": t("errors.session_id_required")}), 400
 
     chat_session = chat_session_or_404(session_id)
     if chat_session is None:
-        return jsonify({"error": "Chat session not found."}), 404
+        return jsonify({"error": t("errors.chat_session_not_found")}), 404
 
     user_id = current_user.id
     chat_session_id = chat_session.id
@@ -513,7 +603,7 @@ def api_chat():
             db.session.add(ChatMessage(session_id=chat_session_id, role="assistant", content=assistant_message))
             stored_session = db.session.get(ChatSession, chat_session_id)
             if stored_session and stored_session.user_id == user_id:
-                if is_first_message and stored_session.name == "New coach session":
+                if is_first_message and is_default_chat_session_name(stored_session.name):
                     stored_session.name = generate_session_name(message)
                 stored_session.updated_at = utc_now()
             db.session.commit()
@@ -549,7 +639,7 @@ def api_tip():
         previous_tip,
     ).strip()
     if previous_tip and tip == previous_tip:
-        tip = "Keep your sleep plan simple today: protect a steady bedtime and give yourself a quiet wind-down window."
+        tip = t("predictor.daily_tip_fallback")
     session[previous_key] = tip
     session[tip_key] = {"date": today, "tip": tip}
     session.modified = True

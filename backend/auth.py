@@ -6,6 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from wtforms import EmailField, PasswordField, StringField
 from wtforms.validators import DataRequired, Email, EqualTo, Length
 
+from .i18n import t, translate_error
 from .models import User, db
 
 auth_bp = Blueprint("auth", __name__)
@@ -43,8 +44,14 @@ def auth_feedback(message: str, is_error: bool = True) -> Response:
 def form_error_summary(form: FlaskForm) -> str:
     for errors in form.errors.values():
         if errors:
-            return errors[0]
-    return "Check the form fields and try again."
+            return translate_error(errors[0])
+    return t("errors.check_form")
+
+
+def translate_form_errors(form: FlaskForm) -> None:
+    for field_errors in form.errors.values():
+        for index, message in enumerate(list(field_errors)):
+            field_errors[index] = translate_error(message)
 
 
 def render_auth_form(template: str, form: FlaskForm, error: str | None = None, status: int = 200):
@@ -71,13 +78,14 @@ def login():
             if wants_fragment():
                 return redirect_for_htmx("dashboard_page")
             return redirect(url_for("dashboard_page"))
-        message = "Invalid email or password."
+        message = t("errors.invalid_credentials")
         form.password.errors.append(message)
         if wants_fragment():
             return render_auth_form("auth/_login_form.html", form, status=400)
         return render_template("auth/login.html", form=form, error=message, active_page="login"), 400
 
     if request.method == "POST":
+        translate_form_errors(form)
         message = form_error_summary(form)
         if wants_fragment():
             return render_auth_form("auth/_login_form.html", form, error=message, status=400)
@@ -96,7 +104,7 @@ def register():
         email = form.email.data.lower().strip()
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
-            message = "An account with this email already exists."
+            message = t("errors.email_exists")
             form.email.errors.append(message)
             if wants_fragment():
                 return render_auth_form("auth/_register_form.html", form, status=400)
@@ -115,6 +123,7 @@ def register():
         return redirect(url_for("dashboard_page"))
 
     if request.method == "POST":
+        translate_form_errors(form)
         message = form_error_summary(form)
         if wants_fragment():
             return render_auth_form("auth/_register_form.html", form, error=message, status=400)

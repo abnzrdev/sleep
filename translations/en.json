@@ -1,0 +1,596 @@
+{
+  "app": {
+    "name": "LunaSleep AI",
+    "tagline": "AI + NLP + ML + IoT for calmer sleep insight"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "predictor": "Predictor",
+    "monitor": "Monitor",
+    "ai_coach": "AI Coach",
+    "logout": "Logout",
+    "about": "About",
+    "learn": "Learn",
+    "contact": "Contact",
+    "login": "Login",
+    "get_started": "Get Started"
+  },
+  "common": {
+    "send": "Send",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "rename": "Rename",
+    "delete": "Delete",
+    "back_to_landing": "Back to landing",
+    "just_now": "just now",
+    "minutes_ago": "{count} minutes ago",
+    "hours_ago": "{count} hours ago",
+    "days_ago": "{count} days ago",
+    "period_morning": "Good morning",
+    "period_afternoon": "Good afternoon",
+    "period_evening": "Good evening"
+  },
+  "base": {
+    "floating_chat_description": "Ask your sleep coach about trends and next steps.",
+    "full_page": "Full page",
+    "no_chat_messages": "No chat messages yet.",
+    "open_sleep_chat": "Open sleep chat"
+  },
+  "landing": {
+    "page_title": "Sleep Insight",
+    "hero_title": "Understand your sleep with",
+    "hero_highlight": "AI clarity.",
+    "hero_description": "Predict sleep efficiency, get AI coaching, and monitor live sensor signals in one calm workflow.",
+    "hero_copy": "Predict sleep efficiency, follow overnight movement, and turn raw nightly signals into calmer, practical next steps.",
+    "get_started": "Get Started",
+    "learn_more": "Learn More",
+    "features_label": "Feature Showcase",
+    "features_title": "Explore your sleep tools.",
+    "features_description": "Preview each feature.",
+    "feature_predictor_title": "Sleep Score Prediction",
+    "feature_predictor_description": "Predict sleep efficiency.",
+    "feature_predictor_preview_title": "Predict sleep score.",
+    "feature_predictor_preview_description": "See how habits affect sleep efficiency.",
+    "feature_predictor_cta": "Open Predictor",
+    "feature_predictor_tag_1": "Sleep duration",
+    "feature_predictor_tag_2": "Awakenings",
+    "feature_predictor_tag_3": "Habit inputs",
+    "feature_monitor_title": "Live Sleep Monitor",
+    "feature_monitor_description": "Track movement live.",
+    "feature_monitor_preview_title": "Track movement live.",
+    "feature_monitor_preview_description": "Watch movement, awakenings, and device status.",
+    "feature_monitor_cta": "Open Monitor",
+    "feature_monitor_tag_1": "Movement line",
+    "feature_monitor_tag_2": "Awake events",
+    "feature_monitor_tag_3": "Device status",
+    "feature_ai_title": "AI Sleep Coach",
+    "feature_ai_description": "Get simple advice.",
+    "feature_ai_preview_title": "Ask your AI coach.",
+    "feature_ai_preview_description": "Turn sleep data into clear next steps.",
+    "feature_ai_cta": "Open AI Coach",
+    "feature_ai_tag_1": "Guidance",
+    "feature_ai_tag_2": "Context",
+    "feature_ai_tag_3": "Next action",
+    "showcase_label": "Feature Showcase",
+    "preview_surface": "Preview Surface",
+    "focus_label": "Focus",
+    "signal_label": "Signal",
+    "outcome_label": "Outcome",
+    "how_it_works_label": "How It Works",
+    "education_label": "Sleep Education Preview",
+    "footer_copyright": "© 2026 LunaSleep AI",
+    "github": "GitHub",
+    "features": {
+      "prediction": {
+        "button_title": "Sleep Score Prediction",
+        "button_copy": "Structured nightly inputs turn into a guided score preview you can compare over time.",
+        "preview_label": "Sleep Score Prediction",
+        "preview_title": "A guided score preview for each night.",
+        "preview_pill": "ML Model",
+        "preview_copy": "Preview how sleep duration, awakenings, and lifestyle signals shape efficiency so you can compare habits before and after routine changes.",
+        "metric_one": "Sleep efficiency",
+        "metric_two": "Nightly inputs",
+        "metric_three": "Clearer trends",
+        "note": "Prediction creates a steady baseline before you compare it with real overnight movement and coaching.",
+        "tags": {
+          "1": "Sleep duration",
+          "2": "Awakenings",
+          "3": "Habit inputs"
+        }
+      },
+      "monitor": {
+        "button_title": "Live Sleep Monitor",
+        "button_copy": "Connected telemetry keeps the night readable through movement and awakening signals.",
+        "preview_label": "Live Sleep Monitor",
+        "preview_title": "Movement and awakenings in real time.",
+        "preview_pill": "IoT Stream",
+        "preview_copy": "Use connected motion telemetry to watch sensor status, movement shifts, and awakenings as the sleep session evolves.",
+        "metric_one": "Movement",
+        "metric_two": "Awake events",
+        "metric_three": "Session status",
+        "note": "The monitor adds live context so predicted sleep quality can be compared against actual overnight behavior.",
+        "tags": {
+          "1": "Motion feed",
+          "2": "Awakening count",
+          "3": "Device status"
+        }
+      },
+      "coach": {
+        "button_title": "AI Sleep Coach",
+        "button_copy": "The coach explains patterns and turns sleep data into next-step routine guidance.",
+        "preview_label": "AI Sleep Coach",
+        "preview_title": "Turn sleep data into next steps.",
+        "preview_pill": "AI Coach",
+        "preview_copy": "Ask follow-up questions, keep a persistent sleep conversation, and turn technical sleep patterns into practical routines.",
+        "metric_one": "Guidance",
+        "metric_two": "Context",
+        "metric_three": "Next action",
+        "note": "AI coaching closes the loop by explaining what changed, why it matters, and what you should test next.",
+        "tags": {
+          "1": "Plain language",
+          "2": "Persistent chat",
+          "3": "Routine advice"
+        },
+        "chat_1": "Your score improved, but the wake pattern still suggests restless sleep after midnight.",
+        "chat_2": "Try shifting your wind-down 30 minutes earlier and compare the next few nights."
+      }
+    },
+    "how_it_works": {
+      "step_1_label": "Step 1",
+      "step_1_title": "Enter sleep details",
+      "step_1_copy": "Add your nightly sleep and routine inputs to generate a predicted efficiency score.",
+      "step_2_label": "Step 2",
+      "step_2_title": "Track movement and sensor data",
+      "step_2_copy": "Overlay connected movement signals and awakenings to understand what happened overnight.",
+      "step_3_label": "Step 3",
+      "step_3_title": "Get AI insight",
+      "step_3_copy": "Use the AI coach to translate the score and sensor context into practical next-step advice."
+    },
+    "education": {
+      "cards": {
+        "basics": {
+          "label": "Sleep Basics",
+          "title": "What is sleep efficiency?",
+          "copy": "A simple view of how much time in bed becomes actual sleep, and why that ratio matters."
+        },
+        "quality": {
+          "label": "Night Quality",
+          "title": "Why awakenings matter",
+          "copy": "Frequent wake periods can reduce recovery even when total sleep duration seems acceptable."
+        },
+        "interpretation": {
+          "label": "Interpretation",
+          "title": "How AI explains your sleep",
+          "copy": "LunaSleep AI turns prediction and telemetry into plain-language context you can act on."
+        }
+      }
+    }
+  },
+  "about": {
+    "page_title": "About",
+    "label": "About LunaSleep AI",
+    "hero_title": "A sleep-focused product built around explanation, not just measurement.",
+    "hero_copy": "LunaSleep AI brings together machine learning, natural-language guidance, and connected movement sensing to help users understand sleep efficiency in context.",
+    "cards": {
+      "prediction": {
+        "label": "ML Prediction",
+        "title": "Structured sleep scoring",
+        "copy": "The predictor estimates sleep efficiency from age, duration, stages, awakenings, caffeine, and lifestyle context."
+      },
+      "monitor": {
+        "label": "IoT Monitoring",
+        "title": "Live movement context",
+        "copy": "The monitor keeps live sensor telemetry visible so motion, posture, and awakenings can be reviewed alongside predictions."
+      },
+      "ai": {
+        "label": "AI + NLP",
+        "title": "Plain-language coaching",
+        "copy": "The AI coach explains scores, answers sleep questions, and helps translate data into realistic behavior changes."
+      }
+    },
+    "direction": {
+      "label": "Product Direction",
+      "for_title": "What LunaSleep AI is for",
+      "for_copy": "The product is designed for people who want a calmer way to understand sleep quality: a guided score, a live movement view, and an AI coach that can explain what may matter next.",
+      "not_title": "What it does not do",
+      "not_copy": "LunaSleep AI does not replace clinical evaluation or diagnose medical conditions. It is built to support interpretation, reflection, and healthier nightly habits."
+    }
+  },
+  "contact": {
+    "page_title": "Contact",
+    "label": "Contact",
+    "hero_title": "Request a demo or start a product conversation.",
+    "hero_copy": "Use this page as a simple contact point for pilots, feedback, research discussions, or product walkthroughs.",
+    "reach": {
+      "label": "Reach Us",
+      "title": "Contact details",
+      "email_label": "Email:",
+      "email_value": "hello@lunasleep.ai",
+      "demo_label": "Demo:",
+      "demo_value": "Product walkthroughs available on request",
+      "focus_label": "Focus:",
+      "focus_value": "Sleep analytics, AI guidance, and connected monitoring workflows"
+    },
+    "request": {
+      "label": "Request",
+      "title": "What to include",
+      "items": {
+        "1": "Your role and organization.",
+        "2": "Whether you want a product demo, technical review, or partnership discussion.",
+        "3": "Any sleep data, hardware, or AI integration questions you want covered.",
+        "4": "The best time window for a follow-up."
+      }
+    }
+  },
+  "coming_soon": {
+    "title": "Coming soon.",
+    "copy": "This page is planned for a future LunaSleep AI update."
+  },
+  "auth": {
+    "auth": "Auth",
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "confirm_password": "Confirm Password"
+    },
+    "placeholders": {
+      "name": "Your name",
+      "email": "you@example.com",
+      "password": "Enter your password",
+      "confirm_password": "Confirm your password"
+    },
+    "login": {
+      "page_title": "Login",
+      "hero_label": "Protected Access",
+      "hero_title": "Return to your sleep space.",
+      "hero_copy": "Sign in to open your dashboard, predictor, monitor, and AI coach without interrupting the core sleep workflows.",
+      "form_label": "Login",
+      "form_title": "Open your dashboard",
+      "submit": "Login",
+      "no_account": "Don't have an account?",
+      "link": "Sign up"
+    },
+    "register": {
+      "page_title": "Sign Up",
+      "hero_label": "New Account",
+      "hero_title": "Create your LunaSleep AI account.",
+      "hero_copy": "Register once to unlock the protected dashboard, predictor, live monitor, and AI coach.",
+      "form_label": "Sign Up",
+      "form_title": "Create an account",
+      "submit": "Sign Up",
+      "have_account": "Already have an account?",
+      "link": "Login"
+    }
+  },
+  "dashboard": {
+    "page_title": "Dashboard",
+    "label": "Dashboard",
+    "greeting": "{period}, {name}.",
+    "hero_copy": "Your workspace combines sleep score prediction, live movement monitoring, and AI coaching in one calm flow.",
+    "ai_brief_label": "AI Daily Brief",
+    "ai_brief_loading": "Preparing your AI brief...",
+    "ai_brief_fallback": "Your latest sleep signal is stable enough to guide tonight with calm, consistent habits.",
+    "next_steps_label": "Next steps",
+    "next_step_1": "Keep bedtime consistent",
+    "next_step_2": "Compare score with monitor data",
+    "next_step_3": "Ask AI what affected the score",
+    "latest_score_label": "Latest Score",
+    "recorded_label": "Recorded",
+    "score_trend_label": "Score Trend",
+    "no_prediction_title": "No prediction yet",
+    "no_prediction_description": "Run your first sleep prediction to unlock trend and latest score insights.",
+    "welcome": {
+      "label": "Welcome",
+      "title": "Your sleep workspace is ready",
+      "copy": "Use LunaSleep AI to estimate tonight's sleep efficiency, monitor movement, and ask for guidance in plain language."
+    },
+    "predictor": {
+      "label": "Predictor",
+      "title": "Run a sleep score",
+      "copy": "Work through the guided intake and generate an ML-based sleep efficiency prediction.",
+      "action": "Open Predictor"
+    },
+    "monitor": {
+      "label": "Monitor",
+      "title": "Watch sleep movement",
+      "copy": "Follow motion, awakenings, posture, and live session state from the connected sensor feed.",
+      "action": "Open Monitor"
+    },
+    "ai": {
+      "label": "AI Coach",
+      "title": "Ask for interpretation",
+      "copy": "Use natural language to explore what your patterns mean and which routine changes are worth testing.",
+      "action": "Open AI Coach"
+    },
+    "latest": {
+      "label": "Latest Sleep Insight",
+      "recorded": "Recorded",
+      "next_step": "Next Step",
+      "next_step_copy": "Compare this score with the monitor, then ask the AI coach what variable matters most."
+    },
+    "latest_insight": {
+      "low": "Rest looked fragmented. Start with fewer late stimulants and a steadier wind-down.",
+      "medium": "Your sleep is holding together, but awakenings or timing may still be pulling efficiency down.",
+      "good": "You are in a healthy range. Small improvements in consistency can still lift recovery.",
+      "excellent": "Your pattern looks strong. Protect the routine that is already helping you sleep well."
+    },
+    "empty": {
+      "title": "No insight yet",
+      "copy": "Start with your first prediction to create a sleep score, then return here for the latest summary.",
+      "action": "Create First Prediction"
+    }
+  },
+  "predictor": {
+    "page_title": "Predictor",
+    "daily_brief_label": "Daily Sleep Brief",
+    "daily_brief_title": "{period}, {name}.",
+    "dismiss_daily_tip": "Dismiss daily tip",
+    "daily_tip_fallback": "Keep tonight simple: protect a steady bedtime and give yourself a quiet wind-down window.",
+    "hero_label": "Sleep Score Predictor",
+    "hero_title": "Predict sleep efficiency from routines, sleep stages, and night interruptions.",
+    "hero_copy": "Move through four calm steps, submit once, and review the model result without leaving the page.",
+    "step_counter": "Step {current} of {total}",
+    "step_intro": "Complete this section to help LunaSleep AI interpret your sleep context more accurately.",
+    "steps": {
+      "profile": { "title": "Profile basics" },
+      "stages": { "title": "Sleep stages" },
+      "interruptions": { "title": "Night interruptions" },
+      "lifestyle": { "title": "Lifestyle factors" }
+    },
+    "fields": {
+      "Age": {
+        "label": "Age",
+        "help": "Your age in years. Sleep patterns often shift by age group."
+      },
+      "Gender": {
+        "label": "Gender",
+        "help": "Use the same 0 or 1 encoding used by the training data."
+      },
+      "Sleep duration": {
+        "label": "Sleep duration",
+        "help": "How many hours you slept, including decimals such as 7.5."
+      },
+      "REM sleep percentage": {
+        "label": "REM sleep percentage",
+        "help": "Percent of the night spent in REM sleep."
+      },
+      "Deep sleep percentage": {
+        "label": "Deep sleep percentage",
+        "help": "Percent of the night spent in deep sleep."
+      },
+      "Light sleep percentage": {
+        "label": "Light sleep percentage",
+        "help": "Percent of the night spent in light sleep."
+      },
+      "Awakenings": {
+        "label": "Awakenings",
+        "help": "How many times you woke up during the night."
+      },
+      "Caffeine consumption": {
+        "label": "Caffeine consumption",
+        "help": "Approximate caffeine intake before sleep, in milligrams."
+      },
+      "Alcohol consumption": {
+        "label": "Alcohol consumption",
+        "help": "Number of alcoholic drinks before sleep."
+      },
+      "Smoking status": {
+        "label": "Smoking status",
+        "help": "Use 0 for no and 1 for yes."
+      },
+      "Exercise frequency": {
+        "label": "Exercise frequency",
+        "help": "How many exercise sessions you usually complete per week."
+      }
+    },
+    "result": {
+      "label": "Prediction Result",
+      "sleep_efficiency": "Sleep efficiency",
+      "raw_score": "Raw Score",
+      "bounded_score": "Bounded Score",
+      "low": "Sleep looked fragmented. Consider reducing late stimulation and caffeine before bed.",
+      "medium": "Sleep efficiency is moderate. A steadier bedtime and fewer awakenings may help.",
+      "good": "Sleep efficiency is good. Small improvements in routine consistency can push this higher.",
+      "excellent": "Sleep efficiency is excellent. Your current routine appears to support solid rest."
+    },
+    "before_submit_label": "Before You Submit",
+    "before_submit_title": "What LunaSleep AI is reading",
+    "before_submit_items": {
+      "1": "Profile basics help the model interpret age, encoded gender, and sleep duration together.",
+      "2": "Sleep-stage percentages describe how your night was split between REM, deep, and light sleep.",
+      "3": "Awakenings and caffeine capture common reasons sleep becomes fragmented.",
+      "4": "Alcohol, smoking, and exercise add lifestyle context that can shift predicted efficiency.",
+      "5": "The final result appears here with a plain-English habit insight."
+    }
+  },
+  "monitor": {
+    "page_title": "Monitor",
+    "title": "Sleep Monitor",
+    "subtitle": "Live movement, posture, and awakenings.",
+    "device_posture": "Device posture",
+    "sensor_source": "Sensor source",
+    "status": "Status",
+    "movement": "Movement",
+    "efficiency": "Efficiency",
+    "awakenings": "Awakenings",
+    "session": "Session",
+    "start": "Start Data",
+    "stop": "Stop Data",
+    "warning": "Waiting for sensor data stream.",
+    "hero_label": "Sleep Movement Monitor",
+    "hero_title": "Real-time movement telemetry for sleep state, posture, and awakenings.",
+    "hero_copy": "Monitor movement, efficiency, awakenings, and posture from the live sensor stream in one focused view.",
+    "start_data": "Start Data",
+    "stop_data": "Stop Data",
+    "waiting": "Waiting...",
+    "status_live": "Live",
+    "status_stopped": "Stopped",
+    "status_awake": "Awake",
+    "status_sleeping": "Sleeping",
+    "status_waiting": "Waiting",
+    "external_sensor_feed": "External sensor feed",
+    "sensor_sender_unavailable": "Sensor sender unavailable; waiting for data.",
+    "sensor_warning": "Sensor warning:",
+    "cards": {
+      "status": {
+        "label": "Status",
+        "copy": "Sleep state classification from the live feed."
+      },
+      "movement": {
+        "label": "Movement",
+        "copy": "Instant movement delta in g-units."
+      },
+      "efficiency": {
+        "label": "Efficiency",
+        "copy": "Live cumulative sleep efficiency."
+      },
+      "awakenings": {
+        "label": "Awakenings",
+        "copy": "Wake transitions detected this session."
+      }
+    },
+    "timeline": {
+      "label": "Sleep Timeline",
+      "title": "Session details",
+      "first_sleep": "First Sleep",
+      "sensor_source": "Sensor Source"
+    },
+    "raw_data": {
+      "label": "Raw Sensor Data",
+      "title": "Axis telemetry",
+      "x_axis": "X-Axis",
+      "y_axis": "Y-Axis",
+      "z_axis": "Z-Axis"
+    },
+    "guidance": {
+      "label": "Monitor Guidance",
+      "title": "What the monitor tracks",
+      "items": {
+        "1": "Sleep state shows whether the current movement pattern looks awake or sleeping.",
+        "2": "Movement tracks the latest acceleration change from the sensor stream.",
+        "3": "Efficiency estimates the share of the session spent asleep.",
+        "4": "Awakenings counts wake transitions during the session.",
+        "5": "Orientation renders pitch and roll as a simple posture model."
+      }
+    },
+    "orientation": {
+      "label": "3D Orientation",
+      "title": "Sensor posture model",
+      "current_source": "Current source:"
+    },
+    "disconnected": {
+      "label": "Disconnected State",
+      "title": "Waiting for sleep sensor data",
+      "copy": "The monitor is ready, but no live stream has been received yet.",
+      "steps": {
+        "1": "Check that the device is powered on.",
+        "2": "Make sure the device is on the same network.",
+        "3": "Start the sensor sender script.",
+        "4": "Refresh the monitor page."
+      }
+    }
+  },
+  "chat": {
+    "page_title": "AI Coach",
+    "hero_label": "AI Sleep Coach",
+    "hero_title": "Ask for plain-language explanations of your sleep score, habits, and next steps.",
+    "hero_copy": "LunaSleep AI uses your latest prediction context while still answering general questions about sleep and recovery.",
+    "conversations_label": "Conversations",
+    "sessions_title": "Coach sessions",
+    "new_chat": "New Chat",
+    "new_session": "New coach session",
+    "sleep_coach": "Sleep coach",
+    "open_session_menu": "Open session menu",
+    "score_trend_label": "Score Trend",
+    "score_trend_aria": "Last 7 prediction scores",
+    "score_trend_empty": "Run at least two predictions to see a trend.",
+    "conversation_label": "Conversation",
+    "empty_state": "Ask about your latest prediction, recent awakenings, caffeine timing, or general sleep questions.",
+    "suggested_questions": "Suggested Questions",
+    "placeholder": "Ask LunaSleep AI...",
+    "rename_session": "Rename Session",
+    "delete_session": "Delete Session",
+    "delete_confirm": "Delete this coach session and all messages?",
+    "ai_unavailable": "AI assistant is unavailable right now.",
+    "suggestions": {
+      "no_score": {
+        "1": "What affects sleep efficiency?",
+        "2": "How do I improve my score?",
+        "3": "What should I track tonight?"
+      },
+      "low": {
+        "1": "Why is my score low?",
+        "2": "What hurts sleep efficiency?",
+        "3": "How do I improve my score?"
+      },
+      "medium": {
+        "1": "How can I push my score higher?",
+        "2": "What does my score mean?",
+        "3": "Is my sleep schedule consistent?"
+      },
+      "high": {
+        "1": "What's keeping my score high?",
+        "2": "Can I reach 95%?",
+        "3": "What should I keep doing?"
+      }
+    }
+  },
+  "learn": {
+    "page_title": "Learn",
+    "label": "Learn",
+    "hero_title": "Practical sleep concepts that make the data easier to understand.",
+    "hero_copy": "LunaSleep AI is built around interpretable sleep signals. These short guides explain the concepts behind the score, the monitor, and the AI coach.",
+    "cards": {
+      "efficiency": {
+        "label": "Sleep Efficiency",
+        "title": "What is sleep efficiency?",
+        "copy": "Sleep efficiency is the share of time in bed that you are actually asleep. Higher efficiency usually means less time spent awake after falling asleep and a more consolidated night."
+      },
+      "awakenings": {
+        "label": "Awakenings",
+        "title": "Why awakenings matter",
+        "copy": "Frequent awakenings can fragment sleep, reduce restorative stages, and lower sleep efficiency even when total time in bed looks adequate."
+      },
+      "caffeine": {
+        "label": "Caffeine",
+        "title": "How caffeine affects sleep",
+        "copy": "Caffeine can delay sleep onset, lighten sleep, and increase the chance of overnight disruption, especially when taken later in the day or in larger amounts."
+      },
+      "movement": {
+        "label": "Movement",
+        "title": "How movement tracking helps",
+        "copy": "Movement patterns can provide useful signals about restlessness, awakenings, and posture shifts. They do not tell the full story alone, but they add valuable context."
+      },
+      "ai": {
+        "label": "AI Guidance",
+        "title": "How AI can explain sleep data",
+        "copy": "AI can summarize trends, answer questions in plain language, and connect the score with habits like caffeine timing, bedtime consistency, or repeated awakenings."
+      }
+    }
+  },
+  "errors": {
+    "required": "This field is required.",
+    "invalid_email": "Invalid email address.",
+    "name_length": "Name must be between 2 and 120 characters long.",
+    "password_length": "Password must be between 8 and 128 characters long.",
+    "passwords_must_match": "Passwords must match.",
+    "invalid_credentials": "Invalid email or password.",
+    "email_exists": "An account with this email already exists.",
+    "check_form": "Check the form fields and try again.",
+    "field_required": "{field} is required.",
+    "invalid_field_value": "{field} must be a valid {expected}.",
+    "expected_integer": "integer",
+    "expected_number": "number",
+    "binary_field": "{field} must be 0 or 1.",
+    "validation_error": "Validation Error",
+    "chat_session_not_found": "Chat session not found.",
+    "name_required": "Name is required.",
+    "message_required": "Message is required.",
+    "session_id_required": "session_id is required."
+  }
+}

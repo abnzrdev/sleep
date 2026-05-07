@@ -1,36 +1,36 @@
 <div id="auth-form-card" class="w-full max-w-xl px-6 py-10 sm:px-10 lg:px-14">
-    <div class="section-label">Sign Up</div>
-    <h2 class="display-face mt-4 text-4xl leading-none text-white sm:text-5xl">Create an account</h2>
+    <div class="section-label">{{ t("auth.register.form_label") }}</div>
+    <h2 class="display-face mt-4 text-4xl leading-none text-white sm:text-5xl">{{ t("auth.register.form_title") }}</h2>
     <form method="post" action="/register" hx-post="/register" hx-target="#auth-form-card" hx-swap="outerHTML" class="mt-8 space-y-5">
         {{ form.hidden_tag() }}
         <label class="block">
-            <span class="section-label">Name</span>
-            {{ form.name(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="name") }}
+            <span class="section-label">{{ t("auth.fields.name") }}</span>
+            {{ form.name(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="name", placeholder=t("auth.placeholders.name")) }}
             {% if form.name.errors %}<p class="mt-2 text-sm text-[#ff8f85]">{{ form.name.errors[0] }}</p>{% endif %}
         </label>
         <label class="block">
-            <span class="section-label">Email</span>
-            {{ form.email(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="email") }}
+            <span class="section-label">{{ t("auth.fields.email") }}</span>
+            {{ form.email(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="email", placeholder=t("auth.placeholders.email")) }}
             {% if form.email.errors %}<p class="mt-2 text-sm text-[#ff8f85]">{{ form.email.errors[0] }}</p>{% endif %}
         </label>
         <label class="block">
-            <span class="section-label">Password</span>
-            {{ form.password(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="new-password") }}
+            <span class="section-label">{{ t("auth.fields.password") }}</span>
+            {{ form.password(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="new-password", placeholder=t("auth.placeholders.password")) }}
             {% if form.password.errors %}<p class="mt-2 text-sm text-[#ff8f85]">{{ form.password.errors[0] }}</p>{% endif %}
         </label>
         <label class="block">
-            <span class="section-label">Confirm Password</span>
-            {{ form.confirm_password(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="new-password") }}
+            <span class="section-label">{{ t("auth.fields.confirm_password") }}</span>
+            {{ form.confirm_password(class="auth-input mt-2 px-4 py-3 text-sm", autocomplete="new-password", placeholder=t("auth.placeholders.confirm_password")) }}
             {% if form.confirm_password.errors %}<p class="mt-2 text-sm text-[#ff8f85]">{{ form.confirm_password.errors[0] }}</p>{% endif %}
         </label>
         {% if error %}
         <p class="rounded-[16px] border border-[#ff8f85]/20 bg-[#ff8f85]/10 px-4 py-3 text-sm text-[#ffb5ae]">{{ error }}</p>
         {% endif %}
         <button type="submit" class="w-full rounded-full bg-white px-5 py-3 text-sm font-medium text-[#17171c] transition hover:bg-primary">
-            Sign Up
+            {{ t("auth.register.submit") }}
         </button>
         <p class="text-center text-sm text-white/50">
-            Already have access? <a href="/login" class="text-white hover:text-primary">Login</a>
+            {{ t("auth.register.have_account") }} <a href="/login" class="text-white hover:text-primary">{{ t("auth.login.link") }}</a>
         </p>
     </form>
 </div>

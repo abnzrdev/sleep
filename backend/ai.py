@@ -10,6 +10,7 @@ try:
 except ImportError:  # pragma: no cover - keeps the app bootable until dependencies are installed.
     OpenAI = None
 
+from .i18n import get_language_name, t
 from .tools import build_context
 
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
@@ -95,8 +96,14 @@ def _completion(messages: list[dict[str, str]], *, stream: bool, max_tokens: int
 
 
 def _build_chat_messages(user_id: int, history: list[dict[str, str]], message: str) -> list[dict[str, str]]:
+    language_name = get_language_name()
+    language_instruction = (
+        f"User selected language: {language_name}. "
+        "Answer in this language unless the user clearly asks for another language. "
+        "If the user writes in Russian or Kazakh, reply in the same language."
+    )
     return [
-        {"role": "system", "content": f"{SYSTEM_PROMPT}\n\n{build_context(user_id)}"},
+        {"role": "system", "content": f"{SYSTEM_PROMPT}\n\n{language_instruction}\n\n{build_context(user_id)}"},
         *history,
         {"role": "user", "content": message},
     ]
@@ -129,23 +136,28 @@ def generate_session_name(first_message: str) -> str:
     ]
     response, error_message = _completion(messages, stream=False, max_tokens=10, temperature=0.2)
     if error_message or response is None:
-        return "Sleep coach"
+        return t("chat.sleep_coach")
 
-    title = response.choices[0].message.content or "Sleep coach"
+    title = response.choices[0].message.content or t("chat.sleep_coach")
     title = title.translate(str.maketrans("", "", string.punctuation))
     words = [word.strip() for word in title.split() if word.strip()]
-    return " ".join(words[:5]) or "Sleep coach"
+    return " ".join(words[:5]) or t("chat.sleep_coach")
 
 
 def generate_daily_tip_text(user_id: int, user_name: str, score: float | None, time_of_day: str, previous_tip: str | None) -> str:
     score_text = "No prediction score yet" if score is None else f"Last prediction score: {round(score * 100, 1)}%"
     previous_text = f"Do not repeat this exact previous tip: {previous_tip}" if previous_tip else "No previous tip."
+    language_name = get_language_name()
     messages = [
         {
             "role": "system",
             "content": (
-                "Write a warm personal sleep tip for LunaSleep AI. "
-                "Use 2-3 short sentences max. Do not diagnose medical conditions."
+                "Write a warm personal AI sleep brief for LunaSleep AI. "
+                "Use exactly 2 short sentences. Mention latest score and recent trend direction when possible. "
+                "Do not include bullets or a heading. Do not diagnose medical conditions. "
+                f"User selected language: {language_name}. "
+                "Answer in this language unless the user clearly asks for another language. "
+                "If the user writes in Russian or Kazakh, reply in the same language."
             ),
         },
         {
@@ -155,5 +167,17 @@ def generate_daily_tip_text(user_id: int, user_name: str, score: float | None, t
     ]
     response, error_message = _completion(messages, stream=False, max_tokens=120, temperature=0.55)
     if error_message or response is None:
-        return "Keep tonight simple: protect a consistent bedtime and avoid heavy stimulation close to sleep. Small routines are easier to repeat than perfect ones."
-    return (response.choices[0].message.content or "").strip()
+        narrative = t("dashboard.ai_brief_fallback")
+    else:
+        narrative = (response.choices[0].message.content or "").strip()
+
+    narrative = narrative.replace("\r", "\n").strip()
+    narrative_lines = [line.strip() for line in narrative.splitlines() if line.strip() and not line.strip().startswith("-")]
+    narrative_text = " ".join(narrative_lines).strip() or t("dashboard.ai_brief_fallback")
+    return (
+        f"{narrative_text}\n\n"
+        f"{t('dashboard.next_steps_label')}:\n"
+        f"- {t('dashboard.next_step_1')}\n"
+        f"- {t('dashboard.next_step_2')}\n"
+        f"- {t('dashboard.next_step_3')}"
+    )
