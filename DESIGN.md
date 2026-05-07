@@ -1,5 +1,17 @@
 # Design System Inspired by Cohere
 
+## Landing Page Sleep Direction
+
+Landing pages should keep current design tokens.
+Use calmer sleep-focused composition.
+Use larger visual breathing room.
+Use sleep illustrations and feature preview cards.
+Real photos should be avoided for now.
+Feature showcase should use focused active-state behavior.
+Only one feature preview should be shown at a time.
+Inactive features should be visually dimmed.
+Animated landing illustrations should use inline SVG partials when animation CSS needs to target SVG internals.
+
 ## 0. Current Product Rules
 
 This project now uses a dark command-deck variant of the Cohere-inspired system.
