@@ -96,6 +96,27 @@
             color: var(--cohere-white);
         }
 
+        .sidebar-link {
+            display: block;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 14px;
+            color: rgba(255, 255, 255, 0.72);
+            padding: 0.7rem 0.9rem;
+            transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
+        }
+
+        .sidebar-link:hover {
+            color: var(--cohere-white);
+            border-color: rgba(255, 255, 255, 0.22);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-link-active {
+            color: var(--cohere-white);
+            border-color: rgba(122, 167, 255, 0.48);
+            background: rgba(122, 167, 255, 0.12);
+        }
+
         .lang-link {
             border-radius: 9999px;
             color: rgba(255, 255, 255, 0.7);
@@ -109,6 +130,18 @@
         .lang-link-active {
             color: var(--cohere-white);
             background: rgba(255, 255, 255, 0.14);
+        }
+
+        .account-menu[open] .account-menu-icon {
+            transform: rotate(180deg);
+        }
+
+        .account-menu-panel {
+            display: none;
+        }
+
+        .account-menu[open] .account-menu-panel {
+            display: block;
         }
 
         .input-shell {
@@ -214,10 +247,57 @@
     {% block head_extra %}{% endblock %}
 </head>
 <body class="min-h-screen bg-[#1a1a1e] text-cohere-near antialiased">
+    {% if current_user.is_authenticated %}
+    <div class="min-h-screen lg:grid lg:grid-cols-[260px,1fr]">
+        <aside class="hidden border-r border-white/10 px-4 py-5 lg:flex lg:h-screen lg:flex-col lg:gap-6 lg:sticky lg:top-0">
+            <a href="/dashboard" class="flex min-w-0 items-center gap-3 px-2">
+                <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white">
+                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" aria-hidden="true">
+                        <path d="M13.6 3.4a8.7 8.7 0 1 0 8.7 8.7a6.5 6.5 0 1 1-8.7-8.7z" stroke="currentColor" stroke-width="1.8" />
+                    </svg>
+                </span>
+                <span class="display-face truncate text-xl text-white">LunaSleep</span>
+            </a>
+            <nav class="space-y-2">
+                <a href="/predictor" class="sidebar-link {% if active_page == 'predictor' %}sidebar-link-active{% endif %}">{{ t("nav.predictor") }}</a>
+                <a href="/monitor" class="sidebar-link {% if active_page == 'monitor' %}sidebar-link-active{% endif %}">{{ t("nav.monitor") }}</a>
+                <a href="/chat" class="sidebar-link {% if active_page == 'chat' %}sidebar-link-active{% endif %}">{{ t("nav.ai_coach") }}</a>
+            </nav>
+        </aside>
+        <div class="min-h-screen">
+            <header class="sticky top-0 z-40 border-b border-white/10 bg-[#1a1a1e]/90 px-4 py-4 backdrop-blur lg:px-8">
+                <div class="flex items-center justify-between gap-4">
+                    <a href="/dashboard" class="flex min-w-0 items-center gap-3 lg:hidden">
+                        <span class="display-face truncate text-xl text-white">LunaSleep</span>
+                    </a>
+                    <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1">
+                        <a href="/language/en" class="lang-link {% if current_lang == 'en' %}lang-link-active{% endif %}">EN</a>
+                        <a href="/language/ru" class="lang-link {% if current_lang == 'ru' %}lang-link-active{% endif %}">RU</a>
+                        <a href="/language/kk" class="lang-link {% if current_lang == 'kk' %}lang-link-active{% endif %}">KZ</a>
+                    </div>
+                    <details class="account-menu relative ml-auto">
+                        <summary class="flex list-none cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 hover:text-white">
+                            <span>{{ t("nav.account") }}</span>
+                            <svg class="account-menu-icon h-4 w-4 transition-transform duration-150" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </summary>
+                        <div class="account-menu-panel absolute right-0 top-[calc(100%+8px)] z-50 w-44 rounded-[16px] border border-white/10 bg-[#242329] p-1.5 shadow-xl shadow-black/30">
+                            <a href="/settings" class="block rounded-[12px] px-3 py-2 text-sm text-white/75 hover:bg-white/10 hover:text-white">{{ t("nav.settings") }}</a>
+                            <a href="/logout" class="mt-1 block rounded-[12px] px-3 py-2 text-sm text-white/75 hover:bg-white/10 hover:text-white">{{ t("nav.logout") }}</a>
+                        </div>
+                    </details>
+                </div>
+            </header>
+            <main class="w-full max-w-none px-4 py-6 lg:px-8 lg:py-8">
+                {{ self.content() }}
+            </main>
+    </div>
+    {% else %}
     <div class="min-h-screen">
         <header class="sticky top-0 z-40 border-b border-white/10 bg-[#1a1a1e]/90 backdrop-blur">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-10">
-                <a href="{{ '/dashboard' if current_user.is_authenticated else '/' }}" class="flex min-w-0 items-center gap-3">
+                <a href="/" class="flex min-w-0 items-center gap-3">
                     <span class="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white">
                         <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" aria-hidden="true">
                             <path d="M13.6 3.4a8.7 8.7 0 1 0 8.7 8.7a6.5 6.5 0 1 1-8.7-8.7z" stroke="currentColor" stroke-width="1.8" />
@@ -226,19 +306,6 @@
                     <span class="display-face truncate text-xl text-white">LunaSleep</span>
                 </a>
                 <div class="flex min-w-0 flex-wrap items-center justify-end gap-x-4 gap-y-2">
-                    {% if current_user.is_authenticated %}
-                    <nav class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
-                        <a href="/predictor" class="nav-link {% if active_page == 'predictor' %}nav-link-active{% endif %}">{{ t("nav.predictor") }}</a>
-                        <a href="/monitor" class="nav-link {% if active_page == 'monitor' %}nav-link-active{% endif %}">{{ t("nav.monitor") }}</a>
-                        <a href="/chat" class="nav-link {% if active_page == 'chat' %}nav-link-active{% endif %}">{{ t("nav.ai_coach") }}</a>
-                    </nav>
-                    <div class="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1">
-                        <a href="/language/en" class="lang-link {% if current_lang == 'en' %}lang-link-active{% endif %}">EN</a>
-                        <a href="/language/ru" class="lang-link {% if current_lang == 'ru' %}lang-link-active{% endif %}">RU</a>
-                        <a href="/language/kk" class="lang-link {% if current_lang == 'kk' %}lang-link-active{% endif %}">KZ</a>
-                    </div>
-                    <a href="/logout" class="nav-link">{{ t("nav.logout") }}</a>
-                    {% else %}
                     <nav class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
                         <a href="/about" class="nav-link {% if active_page == 'about' %}nav-link-active{% endif %}">{{ t("nav.about") }}</a>
                         <a href="/learn" class="nav-link {% if active_page == 'learn' %}nav-link-active{% endif %}">{{ t("nav.learn") }}</a>
@@ -251,15 +318,22 @@
                     </div>
                     <a href="/login" class="nav-link {% if active_page == 'login' %}nav-link-active{% endif %}">{{ t("nav.login") }}</a>
                     <a href="/register" class="solid-button px-4 py-2 text-sm">{{ t("nav.get_started") }}</a>
-                    {% endif %}
                 </div>
             </div>
         </header>
-
         <main class="mx-auto max-w-7xl px-6 py-8 lg:px-10 lg:py-10">
-            {% block content %}{% endblock %}
+            {{ self.content() }}
         </main>
+    {% endif %}
+    {% if current_user.is_authenticated %}
+        </div>
     </div>
+    {% else %}
+    </div>
+    {% endif %}
+    {% set _content_block %}
+        {% block content %}{% endblock %}
+    {% endset %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

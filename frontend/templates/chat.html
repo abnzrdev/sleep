@@ -7,14 +7,13 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero-band p-7 lg:p-10">
-    <div class="section-label">{{ t("chat.hero_label") }}</div>
-    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
-        {{ t("chat.hero_title") }}
-    </h1>
-    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
-        {{ t("chat.hero_copy") }}
-    </p>
+<section class="cohere-card-strong rounded-[24px] p-5 lg:p-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="display-face text-3xl leading-none text-white sm:text-4xl">{{ t("chat.page_title") }}</h1>
+            <p class="mt-2 text-sm text-white/65">{{ t("chat.hero_copy") }}</p>
+        </div>
+    </div>
 </section>
 
 <section class="mt-6 grid gap-6 lg:grid-cols-[30fr,70fr]">
@@ -82,7 +81,7 @@
             </div>
         </div>
 
-        <form class="sleep-chat-form sticky bottom-0 border-t border-white/10 bg-[#1a1a1e]/95 p-4 backdrop-blur lg:p-5">
+        <form class="sleep-chat-form sticky bottom-0 border-t border-white/10 bg-[#1a1a1e]/95 p-4 backdrop-blur lg:p-5" method="post" novalidate>
             <div id="suggested-questions" class="{% if chat_messages %}hidden{% endif %} mb-3 flex flex-wrap gap-2">
                 <div class="w-full section-label">{{ t("chat.suggested_questions") }}</div>
                 {% for question in suggested_questions %}
@@ -133,7 +132,38 @@
         const renameForm = document.getElementById('rename-form');
         const renameInput = document.getElementById('rename-input');
         const deleteConfirm = document.getElementById('delete-confirm');
+        const chatForm = chatRoot?.querySelector('.sleep-chat-form');
+        const chatInput = chatRoot?.querySelector('.sleep-chat-input');
+        const messagesContainer = chatRoot?.querySelector('.sleep-chat-messages');
+        const typingIndicator = chatRoot?.querySelector('.sleep-chat-typing');
+        const emptyState = chatRoot?.querySelector('.sleep-chat-empty');
         let selectedSessionId = null;
+
+        function scrollToBottom() {
+            if (!messagesContainer) {
+                return;
+            }
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function appendMessage(role, content = '') {
+            if (!messagesContainer) {
+                return null;
+            }
+            emptyState?.classList.add('hidden');
+            const row = document.createElement('div');
+            row.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+
+            const bubble = document.createElement('div');
+            bubble.className = role === 'user'
+                ? 'max-w-[82%] rounded-[18px] rounded-br-md bg-white px-4 py-3 text-sm text-[#17171c]'
+                : 'max-w-[82%] rounded-[18px] rounded-bl-md border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-white/75';
+            bubble.textContent = content;
+            row.appendChild(bubble);
+            messagesContainer.appendChild(row);
+            scrollToBottom();
+            return bubble;
+        }
 
         document.getElementById('new-chat-button')?.addEventListener('click', async () => {
             const response = await fetch('/api/chat/sessions/new', {
@@ -221,6 +251,68 @@
 
         chatRoot?.addEventListener('sleep-chat:sent', () => {
             suggestedQuestions?.classList.add('hidden');
+        });
+
+        chatForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!chatInput || !chatRoot) {
+                return;
+            }
+            const message = chatInput.value.trim();
+            if (!message) {
+                return;
+            }
+
+            appendMessage('user', message);
+            chatInput.value = '';
+            chatInput.focus();
+            suggestedQuestions?.classList.add('hidden');
+            typingIndicator?.classList.remove('hidden');
+            scrollToBottom();
+
+            const sessionId = Number(chatRoot.dataset.sessionId);
+            if (!Number.isFinite(sessionId)) {
+                typingIndicator?.classList.add('hidden');
+                appendMessage('assistant', 'Session is not available.');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ message, session_id: sessionId }),
+                });
+
+                if (!response.ok || !response.body) {
+                    throw new Error(`Chat request failed with ${response.status}`);
+                }
+
+                const assistantBubble = appendMessage('assistant', '');
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) {
+                        break;
+                    }
+                    if (!assistantBubble) {
+                        continue;
+                    }
+                    assistantBubble.textContent += decoder.decode(value, { stream: true });
+                    scrollToBottom();
+                }
+                chatRoot.dispatchEvent(new CustomEvent('sleep-chat:sent'));
+            } catch (error) {
+                console.error(error);
+                appendMessage('assistant', 'I could not respond right now. Please try again.');
+            } finally {
+                typingIndicator?.classList.add('hidden');
+                scrollToBottom();
+            }
         });
 
         const chartElement = document.getElementById('score-trend-chart');

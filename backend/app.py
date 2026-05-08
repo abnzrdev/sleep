@@ -332,6 +332,16 @@ def dashboard_page():
     )
 
 
+@app.get("/settings")
+@login_required
+def settings_page():
+    return render_template(
+        "coming_soon.html",
+        active_page="settings",
+        page_title=t("nav.settings"),
+    )
+
+
 @app.get("/predictor")
 @login_required
 def predictor_page():

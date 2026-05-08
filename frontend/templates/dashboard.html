@@ -4,12 +4,24 @@
 
 {% block head_extra %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+<style>
+    .typing-cursor::after {
+        content: "|";
+        margin-left: 0.08em;
+        color: rgba(255, 255, 255, 0.75);
+        animation: typingBlink 1s steps(1, end) infinite;
+    }
+
+    @keyframes typingBlink {
+        0%, 49% { opacity: 1; }
+        50%, 100% { opacity: 0; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <section class="hero-band rounded-[24px] p-7 lg:p-10">
-    <div class="section-label">{{ t("dashboard.label") }}</div>
-    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
+    <h1 id="dashboard-greeting" class="display-face mt-1 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl" data-full-text="{{ t('dashboard.greeting').format(period=greeting_period, name=current_user.name) }}">
         {{ t("dashboard.greeting").format(period=greeting_period, name=current_user.name) }}
     </h1>
     <div class="mt-6 rounded-[20px] border border-white/10 bg-white/5 p-5">
@@ -53,9 +65,28 @@
 <script>
     const I18N_DASHBOARD = {
         aiBriefLoading: {{ t("dashboard.ai_brief_loading")|tojson }},
+        aiBriefFallback: {{ t("dashboard.ai_brief_fallback")|tojson }},
     };
 
     (() => {
+        const greeting = document.getElementById('dashboard-greeting');
+        if (greeting) {
+            const fullText = greeting.dataset.fullText || greeting.textContent || '';
+            greeting.textContent = '';
+            greeting.classList.add('typing-cursor');
+            let index = 0;
+            const typeNext = () => {
+                if (index >= fullText.length) {
+                    greeting.classList.remove('typing-cursor');
+                    return;
+                }
+                greeting.textContent += fullText[index];
+                index += 1;
+                setTimeout(typeNext, 95);
+            };
+            typeNext();
+        }
+
         const chartElement = document.getElementById('dashboard-score-trend-chart');
         const chartPoints = {{ chart_points|tojson }};
         if (chartElement && chartPoints.length >= 2) {
@@ -96,8 +127,10 @@
                 return;
             }
             text.textContent = I18N_DASHBOARD.aiBriefLoading;
+            const controller = new AbortController();
+            const fallbackTimer = setTimeout(() => controller.abort(), 9000);
             try {
-                const response = await fetch('/api/tip');
+                const response = await fetch('/api/tip', { signal: controller.signal });
                 if (!response.ok || !response.body) {
                     throw new Error(`Tip request failed with ${response.status}`);
                 }
@@ -111,8 +144,14 @@
                     }
                     text.textContent += decoder.decode(value, { stream: true });
                 }
+                if (!text.textContent.trim()) {
+                    text.textContent = I18N_DASHBOARD.aiBriefFallback;
+                }
             } catch (error) {
                 console.error(error);
+                text.textContent = I18N_DASHBOARD.aiBriefFallback;
+            } finally {
+                clearTimeout(fallbackTimer);
             }
         }
 

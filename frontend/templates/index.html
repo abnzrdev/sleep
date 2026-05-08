@@ -7,14 +7,13 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero-band p-7 lg:p-10">
-    <div class="section-label">{{ t("predictor.hero_label") }}</div>
-    <h1 class="display-face mt-4 max-w-4xl text-4xl leading-none text-white sm:text-5xl lg:text-6xl">
-        {{ t("predictor.hero_title") }}
-    </h1>
-    <p class="mt-5 max-w-3xl text-base leading-7 text-white/75 lg:text-lg">
-        {{ t("predictor.hero_copy") }}
-    </p>
+<section class="cohere-card-strong rounded-[24px] p-5 lg:p-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+            <h1 class="display-face text-3xl leading-none text-white sm:text-4xl">{{ t("predictor.page_title") }}</h1>
+            <p class="mt-2 text-sm text-white/65">{{ t("predictor.hero_copy") }}</p>
+        </div>
+    </div>
 </section>
 
 <section class="mt-6 grid gap-6 xl:grid-cols-[1fr,0.9fr]">
